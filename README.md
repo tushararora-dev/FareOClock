@@ -81,7 +81,7 @@ Each section is its own component in `components/site/`, so you can reorder or r
 - Light theme throughout, with exactly one dark section (`#ask`) using `bg-ink text-on-dark`.
 - Primary CTAs are ink-on-cream, not amber — the accent stays a highlight so it never cheapens the page.
 - Oversized headings with tight tracking; a handwritten-ish serif italic (`Instrument Serif`) carries the emotional lines.
-- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed real world map in the hero (accurate coastlines, country borders and labels, great-circle flight route with a travelling plane, destination pins, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
+- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed live map in the hero (real OpenStreetMap tiles, warm-tinted to the cream palette, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
 - Motion is subtle (12–18px rise, 650ms) and disabled for `prefers-reduced-motion`.
 - Content stays visible with JavaScript disabled (`<noscript>` fallback in `app/layout.tsx`).
 
@@ -89,12 +89,12 @@ Each section is its own component in `components/site/`, so you can reorder or r
 
 ## Hero map
 
-The hero background is a self-contained SVG atlas — no tiles, no map library, no API key. It is generated once from public-domain data and committed as JSON.
+The hero background is a real, live map: [Leaflet](https://leafletjs.com) with CARTO Voyager raster tiles built from OpenStreetMap data. No API key is needed.
 
-- `components/site/map-backdrop.tsx` — full-bleed, draggable, zoomable map. Opens focused on India, over-fills the hero at every size, and clamps panning so no seam ever shows. Scrolls with `touch-action: pan-y`, pans with drag or arrow keys, zooms with the buttons, `+` / `-` or double-click, and resets with `0`.
-- `lib/world-countries.json` — the real Natural Earth 1:50m countries: 184 countries, 520 rings, ~12.4k points. Each entry carries a display name, a label anchor and its rings.
-- `scripts/build-world-map.cjs` — regenerates the file from Natural Earth Admin 0 – Countries (public domain), simplifying to the map's projection. Run `node scripts/build-world-map.cjs` after changing the projection or tolerance.
-- The map draws real coastlines and country borders, cream land on a sage ocean, constant-size country labels, a curved great-circle flight route and the destination pins. Headings, route and pins come from `lib/site.ts` (`places` carries `lat`/`lon`), so editing a destination updates the map, the trips board and the ticker together.
+- `components/site/map-backdrop.tsx` — creates the map once on the client, opens on Asia with India at roughly 70% of the width, and keeps it full-bleed at every breakpoint. Drag to pan, the `+` / `−` buttons or double-click to zoom, reset to return. Scroll wheel is left alone so the page still scrolls; on touch devices dragging is off so vertical swipes scroll the page, and the buttons still zoom.
+- The tiles are desaturated and warmed with a CSS filter so they sit inside the cream/green palette; a cream wash over the left side keeps the hero copy readable.
+- A live latitude/longitude chip and a 120px scale bar are driven by the map (`move` / `zoom` / `resize`), and the required **© OpenStreetMap · CARTO** attribution is rendered above the wash.
+- To switch provider (Mapbox, MapTiler, Google), replace the `L.tileLayer(...)` URL and add the key to `.env.local`. For heavy commercial traffic, use a paid tile plan — CARTO's free basemap is meant for light use.
 
 ---
 
@@ -161,16 +161,14 @@ app/
 components/
   reveal.tsx          scroll-reveal wrapper (Motion)
   section-heading.tsx shared eyebrow + heading
-  site/               one file per page section (map-backdrop = hero atlas)
+  site/               one file per page section (map-backdrop = Leaflet hero map)
 lib/
   site.ts             all copy and content
-  world-countries.json generated real world map shapes + label anchors
   place-credits.json  photo attribution data
   contact.ts          form state types
   utils.ts            cn() + ₹ formatting
 public/places/        landmark photos (1400px wide)
 scripts/
-  build-world-map.cjs   regenerate the map JSON from Natural Earth
   resolve-places.cjs  re-fetch + normalise the photos
 ```
 
