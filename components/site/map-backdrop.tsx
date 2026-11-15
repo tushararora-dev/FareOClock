@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Minus, Move, Plus, RotateCcw } from "lucide-react";
-import worldDots from "@/lib/world-dots.json";
-import worldOutline from "@/lib/world-outline.json";
+import worldCountries from "@/lib/world-countries.json";
 import { places } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-const DOTS = worldDots as [number, number][];
-const RINGS = worldOutline as [number, number][][];
+type Country = { n: string; l: [number, number]; r: [number, number][][] };
+
+const COUNTRIES = worldCountries as Country[];
 
 const MAP_W = 900;
 const MAP_H = 360;
@@ -23,6 +23,7 @@ const FOCUS_AT = { x: 0.7, y: 0.5 };
 const ROUTE = ["india", "nepal", "thailand", "vietnam", "hongkong", "philippines"];
 const bySlug = new Map(places.map((place) => [place.slug, place]));
 
+/** Equirectangular, cropped to 85°N → 58°S. */
 function project(lat: number, lon: number) {
   return {
     x: ((lon + 180) / 360) * MAP_W,
@@ -30,33 +31,123 @@ function project(lat: number, lon: number) {
   };
 }
 
-/** One path for every coast, so fill and stroke stay in sync. */
-const LAND_PATH = RINGS.map(
-  (ring) =>
-    ring
-      .map(([x, y], index) => {
-        const px = (x * MAP_W).toFixed(1);
-        const py = (y * MAP_H).toFixed(1);
-        return `${index === 0 ? "M" : "L"}${px} ${py}`;
-      })
-      .join(" ") + " Z",
-).join(" ");
+/** One path per country: fill for land, stroke for borders and coast. */
+const COUNTRY_SHAPES = COUNTRIES.map((country) => {
+  const d = country.r
+    .map(
+      (ring) =>
+        ring
+          .map(([x, y], index) => {
+            const px = (x * MAP_W).toFixed(1);
+            const py = (y * MAP_H).toFixed(1);
+            return `${index === 0 ? "M" : "L"}${px} ${py}`;
+          })
+          .join(" ") + "Z",
+    )
+    .join(" ");
 
-/** Dot radius shrinks towards the poles so the field reads evenly. */
-const DOTS_WITH_RADIUS = DOTS.map(([x, y]) => {
-  const lat = TOP_LAT - y * SPAN_LAT;
   return {
-    x: x * MAP_W,
-    y: y * MAP_H,
-    r: 1.55 + 0.85 * Math.max(0, Math.cos((lat * Math.PI) / 180)) ** 2,
+    name: country.n,
+    label: {
+      x: (country.l[0] / MAP_W) * 100,
+      y: (country.l[1] / MAP_H) * 100,
+    },
+    d,
   };
 });
 
-const PARALLELS = [
-  { lat: 23.4367, label: "Tropic of Cancer" },
-  { lat: 0, label: "Equator" },
-  { lat: -23.4367, label: "Tropic of Capricorn" },
+const shapeByName = new Map(COUNTRY_SHAPES.map((shape) => [shape.name, shape]));
+
+/** Labels worth showing around the focus. Small countries appear later. */
+const COUNTRY_LABELS: { name: string; size: "lg" | "sm" }[] = [
+  { name: "India", size: "lg" },
+  { name: "China", size: "lg" },
+  { name: "Russia", size: "lg" },
+  { name: "Australia", size: "lg" },
+  { name: "Indonesia", size: "lg" },
+  { name: "Saudi Arabia", size: "lg" },
+  { name: "Pakistan", size: "sm" },
+  { name: "Iran", size: "sm" },
+  { name: "Afghanistan", size: "sm" },
+  { name: "Kazakhstan", size: "sm" },
+  { name: "Mongolia", size: "sm" },
+  { name: "Japan", size: "sm" },
+  { name: "Thailand", size: "sm" },
+  { name: "Vietnam", size: "sm" },
+  { name: "Myanmar", size: "sm" },
+  { name: "Malaysia", size: "sm" },
+  { name: "Philippines", size: "sm" },
+  { name: "Nepal", size: "sm" },
+  { name: "Bangladesh", size: "sm" },
+  { name: "Sri Lanka", size: "sm" },
+  { name: "United Arab Emirates", size: "sm" },
+  { name: "Oman", size: "sm" },
 ];
+
+const SEA_LABELS = [
+  { name: "Arabian Sea", lat: 15, lon: 63 },
+  { name: "Bay of Bengal", lat: 12, lon: 89 },
+  { name: "Indian Ocean", lat: -12, lon: 78 },
+  { name: "South China Sea", lat: 10, lon: 115 },
+];
+
+/** Spherical interpolation, so the flight route curves like a real one. */
+function greatCircle(
+  from: { lat: number; lon: number },
+  to: { lat: number; lon: number },
+  steps = 28,
+) {
+  const rad = Math.PI / 180;
+  const a = [
+    Math.cos(from.lat * rad) * Math.cos(from.lon * rad),
+    Math.cos(from.lat * rad) * Math.sin(from.lon * rad),
+    Math.sin(from.lat * rad),
+  ];
+  const b = [
+    Math.cos(to.lat * rad) * Math.cos(to.lon * rad),
+    Math.cos(to.lat * rad) * Math.sin(to.lon * rad),
+    Math.sin(to.lat * rad),
+  ];
+  const dot = Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  const omega = Math.acos(dot);
+
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    let v: [number, number, number];
+    if (omega < 1e-6) {
+      v = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    } else {
+      const sinOmega = Math.sin(omega);
+      const ka = Math.sin((1 - t) * omega) / sinOmega;
+      const kb = Math.sin(t * omega) / sinOmega;
+      v = [a[0] * ka + b[0] * kb, a[1] * ka + b[1] * kb, a[2] * ka + b[2] * kb];
+    }
+    const lat = Math.atan2(v[2], Math.hypot(v[0], v[1])) / rad;
+    const lon = Math.atan2(v[1], v[0]) / rad;
+    points.push(project(lat, lon));
+  }
+  return points;
+}
+
+const ROUTE_POINTS = ROUTE.map((slug) => bySlug.get(slug)).filter(
+  (place): place is (typeof places)[number] => Boolean(place),
+);
+
+const ROUTE_PATH = ROUTE_POINTS.reduce((path, point, index) => {
+  const previous = ROUTE_POINTS[index - 1];
+  if (!previous) {
+    const start = project(point.lat, point.lon);
+    return `M ${start.x.toFixed(1)} ${start.y.toFixed(1)}`;
+  }
+  return (
+    path +
+    greatCircle(previous, point)
+      .slice(1)
+      .map((p) => ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+      .join("")
+  );
+}, "");
 
 const formatLat = (value: number) =>
   `${Math.abs(value).toFixed(1)}°${value >= 0 ? "N" : "S"}`;
@@ -110,7 +201,7 @@ export function MapBackdrop() {
     chip.textContent = `${formatLat(lat)} · ${formatLon(lon)}`;
 
     if (bar) {
-      const km = ((120 / s / MAP_W) * 360 * 111.32 * Math.cos((lat * Math.PI) / 180));
+      const km = (120 / s / MAP_W) * 360 * 111.32 * Math.cos((lat * Math.PI) / 180);
       bar.textContent = `${Math.max(1, Math.round(km / 10) * 10)} km`;
     }
   }, []);
@@ -149,8 +240,8 @@ export function MapBackdrop() {
     const s = Math.max(w / MAP_W, h / MAP_H) * 1.06;
     fitScale.current = s;
     const point = project(FOCUS.lat, FOCUS.lon);
-    const x = (w * FOCUS_AT.x - w / 2) - (point.x - MAP_W / 2) * s;
-    const y = (h * FOCUS_AT.y - h / 2) - (point.y - MAP_H / 2) * s;
+    const x = w * FOCUS_AT.x - w / 2 - (point.x - MAP_W / 2) * s;
+    const y = h * FOCUS_AT.y - h / 2 - (point.y - MAP_H / 2) * s;
     const next = clamp(x, y, s);
     apply(next.x, next.y, next.s);
     setScale(next.s);
@@ -263,25 +354,11 @@ export function MapBackdrop() {
     }
   }
 
-  const route = ROUTE.map((slug) => bySlug.get(slug))
-    .filter((place): place is (typeof places)[number] => Boolean(place))
-    .map((place) => project(place.lat, place.lon));
-
-  const routePath = route.reduce((path, point, index) => {
-    if (index === 0) return `M ${point.x} ${point.y}`;
-    const previous = route[index - 1];
-    const midX = (previous.x + point.x) / 2;
-    const midY = (previous.y + point.y) / 2 - 22;
-    return `${path} Q ${midX} ${midY} ${point.x} ${point.y}`;
-  }, "");
-
-  const [planeStart] = route;
-
   return (
     <div
       ref={rootRef}
       role="group"
-      aria-label="Interactive map background. Drag to pan, arrow keys to move, plus and minus to zoom."
+      aria-label="Map background. Drag to pan, arrow keys to move, plus and minus to zoom."
       tabIndex={0}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -290,7 +367,7 @@ export function MapBackdrop() {
       onKeyDown={onKeyDown}
       onDoubleClick={() => zoom(1.3)}
       style={{ touchAction: "pan-y" }}
-      className="absolute inset-0 z-0 cursor-grab touch-pan-y overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/30 active:cursor-grabbing"
+      className="absolute inset-0 z-0 cursor-grab touch-pan-y overflow-hidden bg-[#dbe7e0] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/30 active:cursor-grabbing"
     >
       <div
         ref={layerRef}
@@ -298,139 +375,60 @@ export function MapBackdrop() {
         className="map-layer absolute left-1/2 top-1/2"
         style={{ width: MAP_W, height: MAP_H }}
       >
-        <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="h-full w-full" aria-hidden>
+        <svg
+          viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+          className="h-full w-full"
+          aria-hidden
+        >
+          {/* ocean depth, very subtle */}
+          <defs>
+            <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#d6e4dc" />
+              <stop offset="0.55" stopColor="#dde9e2" />
+              <stop offset="1" stopColor="#d3e2da" />
+            </linearGradient>
+          </defs>
+          <rect width={MAP_W} height={MAP_H} fill="url(#ocean)" />
+
           {/* graticule */}
-          <g stroke="#1f5a45" opacity="0.055">
-            {Array.from({ length: 13 }, (_, i) => i * 30 - 180)
-              .filter((lon) => project(0, lon).x > 0 && project(0, lon).x < MAP_W)
-              .map((lon) => {
-                const x = project(0, lon).x;
-                return <line key={`m${lon}`} x1={x} x2={x} y1="0" y2={MAP_H} />;
-              })}
+          <g stroke="#1f5a45" strokeWidth="0.7" opacity="0.06">
+            {Array.from({ length: 11 }, (_, i) => (i + 1) * 30 - 180).map((lon) => {
+              const x = project(0, lon).x;
+              return <line key={`m${lon}`} x1={x} x2={x} y1="0" y2={MAP_H} />;
+            })}
             {Array.from({ length: 7 }, (_, i) => 60 - i * 20).map((lat) => {
               const y = project(lat, 0).y;
               return <line key={`p${lat}`} x1="0" x2={MAP_W} y1={y} y2={y} />;
             })}
           </g>
 
-          {/* land: soft wash, dashed coastline, dotted interior */}
-          <path d={LAND_PATH} fill="#1f5a45" opacity="0.055" fillRule="evenodd" />
-          <path
-            d={LAND_PATH}
-            fill="none"
-            stroke="#1f5a45"
-            strokeWidth="0.9"
-            strokeDasharray="2.4 2.4"
-            opacity="0.32"
-            fillRule="evenodd"
-          />
-          <g fill="#1f5a45" opacity="0.16">
-            {DOTS_WITH_RADIUS.map(({ x, y, r }, index) => (
-              <circle key={index} cx={x} cy={y} r={r} />
+          {/* real countries: cream land, hairline borders */}
+          <g strokeLinejoin="round">
+            {COUNTRY_SHAPES.map((country) => (
+              <path
+                key={country.name}
+                d={country.d}
+                fill="#fbf8f1"
+                fillRule="evenodd"
+                stroke="#1f5a45"
+                strokeOpacity="0.22"
+                strokeWidth="0.9"
+                vectorEffect="non-scaling-stroke"
+              />
             ))}
           </g>
 
-          {/* map parallels, chart style */}
-          <g>
-            {PARALLELS.map((line) => {
-              const y = ((TOP_LAT - line.lat) / SPAN_LAT) * MAP_H;
-              return (
-                <g key={line.label}>
-                  <line
-                    x1="0"
-                    x2={MAP_W}
-                    y1={y}
-                    y2={y}
-                    stroke="#f2a33c"
-                    strokeWidth="0.8"
-                    strokeDasharray="1 5"
-                    opacity="0.55"
-                  />
-                  <text
-                    x="6"
-                    y={y - 3}
-                    fill="#a98a53"
-                    fontSize="6.5"
-                    letterSpacing="0.6"
-                    className="uppercase"
-                  >
-                    {line.label}
-                  </text>
-                </g>
-              );
-            })}
-          </g>
-
-          {/* route */}
-          <path
-            d={routePath}
-            fill="none"
-            stroke="#1f5a45"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeDasharray="3 6"
-            opacity="0.55"
-            className="map-route"
-          />
-
-          {/* plane gliding the route */}
-          {planeStart && !calm ? (
-            <g>
-              <path
-                d="M0 0 L-7 3 L-2.6 0 L-7 -3 Z"
-                fill="#1f5a45"
-                opacity="0.75"
-              />
-              <animateMotion
-                dur="16s"
-                repeatCount="indefinite"
-                rotate="auto"
-                path={routePath}
-              />
-            </g>
-          ) : null}
-
-          {/* compass, tucked into the Atlantic */}
-          <g
-            transform={`translate(${project(44, -34).x} ${project(44, -34).y})`}
-            opacity="0.42"
-          >
-            <circle r="20" fill="none" stroke="#1f5a45" strokeWidth="0.7" strokeDasharray="1.5 3.5" />
-            <circle r="14" fill="none" stroke="#1f5a45" strokeWidth="0.5" opacity="0.6" />
-            <path d="M0 -13 L3.6 3 L0 0.5 L-3.6 3 Z" fill="#1f5a45" />
-            <path d="M0 13 L2.4 5 L0 6.4 L-2.4 5 Z" fill="#1f5a45" opacity="0.5" />
-            <text
-              y="-23"
-              textAnchor="middle"
-              fill="#1f5a45"
-              fontSize="6"
-              letterSpacing="1"
-            >
-              N
-            </text>
-            <text x="24" y="2.5" fill="#1f5a45" fontSize="5" letterSpacing="1">
-              E
-            </text>
-            <text x="-29" y="2.5" fill="#1f5a45" fontSize="5" letterSpacing="1">
-              W
-            </text>
-          </g>
-
-          {/* water labels, the way an old chart sets them */}
+          {/* sea names, the way a chart sets them */}
           <g
             fill="#1f5a45"
-            opacity="0.3"
-            fontSize="5.4"
-            letterSpacing="1.5"
+            opacity="0.28"
+            fontSize="5.6"
+            letterSpacing="1.6"
             textAnchor="middle"
+            style={{ fontStyle: "italic" }}
             className="uppercase"
           >
-            {[
-              { name: "Arabian Sea", lat: 14, lon: 64 },
-              { name: "Bay of Bengal", lat: 12, lon: 89 },
-              { name: "Indian Ocean", lat: -12, lon: 78 },
-              { name: "South China Sea", lat: 10, lon: 114 },
-            ].map((sea) => {
+            {SEA_LABELS.map((sea) => {
               const point = project(sea.lat, sea.lon);
               return (
                 <text key={sea.name} x={point.x} y={point.y}>
@@ -440,19 +438,57 @@ export function MapBackdrop() {
             })}
           </g>
 
-          <text
-            x={project(31, 84).x}
-            y={project(31, 84).y}
-            fill="#1f5a45"
-            opacity="0.34"
-            fontSize="5.4"
-            letterSpacing="2.2"
-            textAnchor="middle"
-            className="uppercase"
-          >
-            Himalaya
-          </text>
+          {/* flight route */}
+          <path
+            d={ROUTE_PATH}
+            fill="none"
+            stroke="#1f5a45"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeDasharray="5 5"
+            opacity="0.6"
+            className="map-route"
+            vectorEffect="non-scaling-stroke"
+          />
+
+          {!calm ? (
+            <g>
+              <path d="M0 0 L-8 3.4 L-3 0 L-8 -3.4 Z" fill="#1f5a45" opacity="0.8" />
+              <animateMotion
+                dur="18s"
+                repeatCount="indefinite"
+                rotate="auto"
+                path={ROUTE_PATH}
+              />
+            </g>
+          ) : null}
         </svg>
+
+        {/* country labels, constant size at every zoom */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          {COUNTRY_LABELS.map(({ name, size }) => {
+            const shape = shapeByName.get(name);
+            if (!shape) return null;
+            return (
+              <span
+                key={name}
+                className={cn(
+                  "absolute whitespace-nowrap font-medium uppercase text-ink/35",
+                  size === "lg"
+                    ? "text-[9px] tracking-[0.22em] sm:text-[10px]"
+                    : "hidden text-[8px] tracking-[0.16em] sm:block",
+                )}
+                style={{
+                  left: `${shape.label.x}%`,
+                  top: `${shape.label.y}%`,
+                  transform: `translate(-50%, -50%) scale(${1 / scale})`,
+                }}
+              >
+                {name}
+              </span>
+            );
+          })}
+        </div>
 
         {places.map((place) => {
           const point = project(place.lat, place.lon);
@@ -477,29 +513,32 @@ export function MapBackdrop() {
                 transform: `translate(-50%, -50%) scale(${1 / scale})`,
               }}
             >
-              {/* stamped ring around each stop */}
-              <span className="relative grid size-7 place-items-center">
+              <span className="relative grid size-6 place-items-center">
                 <span
                   aria-hidden
                   className={cn(
-                    "absolute inset-0 rounded-full border border-dashed transition-colors",
-                    isActive
-                      ? "map-ping border-brand/70 bg-brand/10"
-                      : "border-ink/25 bg-cream/40 group-hover/pin:border-brand/50",
+                    "absolute inset-0 rounded-full",
+                    isActive ? "map-ping bg-brand/25" : "bg-transparent",
                   )}
                 />
                 <span
+                  aria-hidden
                   className={cn(
-                    "relative size-1.5 rounded-full",
-                    isActive ? "bg-brand" : "bg-ink/45 group-hover/pin:bg-ink/70",
+                    "absolute size-3.5 rounded-full shadow-[0_1px_4px_rgba(20,32,27,0.35)] ring-1 transition-colors",
+                    isActive
+                      ? "bg-brand ring-cream"
+                      : "bg-surface ring-ink/25 group-hover/pin:bg-cream",
                   )}
                 />
+                {isActive ? null : (
+                  <span className="relative size-1 rounded-full bg-brand" />
+                )}
               </span>
 
               <span
                 aria-hidden
                 className={cn(
-                  "pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-full border border-line bg-cream/95 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-ink shadow-[0_6px_16px_-12px_rgba(20,32,27,0.9)] backdrop-blur transition-opacity duration-200",
+                  "pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-md border border-line bg-surface/95 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.1em] text-ink shadow-[0_10px_24px_-16px_rgba(20,32,27,0.9)] backdrop-blur transition-opacity duration-200",
                   isActive
                     ? "opacity-100"
                     : "opacity-0 group-hover/pin:opacity-100 group-focus-visible/pin:opacity-100",
@@ -517,7 +556,7 @@ export function MapBackdrop() {
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--color-cream)_0%,rgba(250,246,238,0.97)_26%,rgba(250,246,238,0.82)_40%,rgba(250,246,238,0.38)_55%,rgba(250,246,238,0.04)_72%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--color-cream)_0%,rgba(250,246,238,0.97)_26%,rgba(250,246,238,0.84)_40%,rgba(250,246,238,0.42)_55%,rgba(250,246,238,0.05)_72%)]"
       />
       <div
         aria-hidden
@@ -550,23 +589,6 @@ export function MapBackdrop() {
             />
           </span>
         ))}
-      </div>
-
-      {/* passport stamp */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-[58%] top-[13%] hidden lg:block"
-      >
-        <div className="relative size-24 xl:size-28">
-          <div className="stamp-ring absolute inset-0 rounded-full border-2 border-dashed border-brand/25" />
-          <div className="absolute inset-1.5 grid place-items-center rounded-full border border-brand/15 bg-cream/70 text-center backdrop-blur">
-            <span className="text-[9px] font-medium uppercase leading-[1.5] tracking-[0.16em] text-brand/80">
-              itinerary
-              <br />
-              1:1 calls
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* cartography chips */}

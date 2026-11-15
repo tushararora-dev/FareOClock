@@ -81,7 +81,7 @@ Each section is its own component in `components/site/`, so you can reorder or r
 - Light theme throughout, with exactly one dark section (`#ask`) using `bg-ink text-on-dark`.
 - Primary CTAs are ink-on-cream, not amber — the accent stays a highlight so it never cheapens the page.
 - Oversized headings with tight tracking; a handwritten-ish serif italic (`Instrument Serif`) carries the emotional lines.
-- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed atlas map in the hero (dotted land mask, dashed coastlines, tropics, ocean labels, marching route, travelling plane, compass, stamped pins, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
+- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed real world map in the hero (accurate coastlines, country borders and labels, great-circle flight route with a travelling plane, destination pins, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
 - Motion is subtle (12–18px rise, 650ms) and disabled for `prefers-reduced-motion`.
 - Content stays visible with JavaScript disabled (`<noscript>` fallback in `app/layout.tsx`).
 
@@ -92,10 +92,9 @@ Each section is its own component in `components/site/`, so you can reorder or r
 The hero background is a self-contained SVG atlas — no tiles, no map library, no API key. It is generated once from public-domain data and committed as JSON.
 
 - `components/site/map-backdrop.tsx` — full-bleed, draggable, zoomable map. Opens focused on India, over-fills the hero at every size, and clamps panning so no seam ever shows. Scrolls with `touch-action: pan-y`, pans with drag or arrow keys, zooms with the buttons, `+` / `-` or double-click, and resets with `0`.
-- `lib/world-dots.json` — 965 evenly spaced land dots, normalised to the map's viewBox.
-- `lib/world-outline.json` — 78 simplified coastline rings drawn as dashed coastlines and used for the faint land wash.
-- `scripts/build-world-dots.cjs` — regenerates both files from Natural Earth 110m land (public domain). Run `node scripts/build-world-dots.cjs` after changing the projection.
-- Headings, route, labels and pins live in `lib/site.ts` (`places` carries `lat`/`lon`), so editing a destination updates the map, the trips board and the ticker together.
+- `lib/world-countries.json` — the real Natural Earth 1:50m countries: 184 countries, 520 rings, ~12.4k points. Each entry carries a display name, a label anchor and its rings.
+- `scripts/build-world-map.cjs` — regenerates the file from Natural Earth Admin 0 – Countries (public domain), simplifying to the map's projection. Run `node scripts/build-world-map.cjs` after changing the projection or tolerance.
+- The map draws real coastlines and country borders, cream land on a sage ocean, constant-size country labels, a curved great-circle flight route and the destination pins. Headings, route and pins come from `lib/site.ts` (`places` carries `lat`/`lon`), so editing a destination updates the map, the trips board and the ticker together.
 
 ---
 
@@ -165,14 +164,13 @@ components/
   site/               one file per page section (map-backdrop = hero atlas)
 lib/
   site.ts             all copy and content
-  world-dots.json     generated land-dot mask for the hero map
-  world-outline.json  generated coastlines for the hero map
+  world-countries.json generated real world map shapes + label anchors
   place-credits.json  photo attribution data
   contact.ts          form state types
   utils.ts            cn() + ₹ formatting
 public/places/        landmark photos (1400px wide)
 scripts/
-  build-world-dots.cjs  regenerate the map JSON from Natural Earth
+  build-world-map.cjs   regenerate the map JSON from Natural Earth
   resolve-places.cjs  re-fetch + normalise the photos
 ```
 
