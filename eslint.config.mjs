@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // One-off Node tooling, not part of the app bundle.
     "scripts/**",
+    // Vendored MapLibre web worker, served as-is from public/.
+    "public/maplibre/**",
   ]),
 ]);
 

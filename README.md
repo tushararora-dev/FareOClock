@@ -81,7 +81,7 @@ Each section is its own component in `components/site/`, so you can reorder or r
 - Light theme throughout, with exactly one dark section (`#ask`) using `bg-ink text-on-dark`.
 - Primary CTAs are ink-on-cream, not amber — the accent stays a highlight so it never cheapens the page.
 - Oversized headings with tight tracking; a handwritten-ish serif italic (`Instrument Serif`) carries the emotional lines.
-- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed live map in the hero (real OpenStreetMap tiles, warm-tinted to the cream palette, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
+- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed live map in the hero (OpenStreetMap vector tiles, warm-tinted to the cream palette, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
 - Motion is subtle (12–18px rise, 650ms) and disabled for `prefers-reduced-motion`.
 - Content stays visible with JavaScript disabled (`<noscript>` fallback in `app/layout.tsx`).
 
@@ -89,12 +89,17 @@ Each section is its own component in `components/site/`, so you can reorder or r
 
 ## Hero map
 
-The hero background is a real, live map: [Leaflet](https://leafletjs.com) with CARTO Voyager raster tiles built from OpenStreetMap data. No API key is needed.
+The hero background is a real, live map: [MapLibre GL JS](https://maplibre.org) with vector tiles from OpenStreetMap data.
 
+- **Providers:** MapTiler `streets-v2` vector tiles by default (`NEXT_PUBLIC_MAPTILER_KEY`), then Mapbox `streets-v12` (`NEXT_PUBLIC_MAPBOX_TOKEN`), then [OpenFreeMap](https://openfreemap.org)'s Positron style as a keyless fallback so the page never ships broken. MapTiler wins the default because its quieter cartography lets the cream palette lead; Mapbox is denser and punchier but has to be rendered as raster tiles because MapLibre v6 no longer reads `mapbox://` style URLs.
+- **Compare:** open `/?map=maptiler` and `/?map=mapbox` side by side. Attribution follows the active provider automatically.
+- Put the keys in `.env.local` for local work and in Vercel → Settings → Environment Variables for production. Restrict the keys to your domain in the Mapbox / MapTiler dashboards — public tokens are visible in the browser.
 - `components/site/map-backdrop.tsx` — creates the map once on the client, opens on Asia with India at roughly 70% of the width, and keeps it full-bleed at every breakpoint. Drag to pan, the `+` / `−` buttons or double-click to zoom, reset to return. Scroll wheel is left alone so the page still scrolls; on touch devices dragging is off so vertical swipes scroll the page, and the buttons still zoom.
-- The tiles are desaturated and warmed with a CSS filter so they sit inside the cream/green palette; a cream wash over the left side keeps the hero copy readable.
-- A live latitude/longitude chip and a 120px scale bar are driven by the map (`move` / `zoom` / `resize`), and the required **© OpenStreetMap · CARTO** attribution is rendered above the wash.
-- To switch provider (Mapbox, MapTiler, Google), replace the `L.tileLayer(...)` URL and add the key to `.env.local`. For heavy commercial traffic, use a paid tile plan — CARTO's free basemap is meant for light use.
+- **Pinned while scrolling:** a rAF-throttled scroll listener translates the map layer by the hero's scroll offset, so the map stays fixed in the viewport while the hero copy and stats travel over it. The hero's `overflow-hidden` clips the layer at the section edge, so it never leaks behind the sections below.
+- The basemap is desaturated and warmed with a CSS filter on the canvas, then fades in once the first style frame is ready; a cream wash over the left side keeps the hero copy readable.
+- A live latitude/longitude chip and a 120px scale bar are driven by the map (`move` / `resize`), and the keyboard can pan the map once the region has focus.
+- The MapLibre worker is served as a static file from `public/maplibre/maplibre-gl-worker.mjs` (copied from the package) and wired with `setWorkerUrl`, so Turbopack never tries to bundle it.
+- To change look, swap the style id (`streets-v12` → `light-v11`, or `streets-v2` → `basic-v2` / `winter-v2`).
 
 ---
 
@@ -161,13 +166,14 @@ app/
 components/
   reveal.tsx          scroll-reveal wrapper (Motion)
   section-heading.tsx shared eyebrow + heading
-  site/               one file per page section (map-backdrop = Leaflet hero map)
+  site/               one file per page section (map-backdrop = MapLibre hero map)
 lib/
   site.ts             all copy and content
   place-credits.json  photo attribution data
   contact.ts          form state types
   utils.ts            cn() + ₹ formatting
 public/places/        landmark photos (1400px wide)
+public/maplibre/      MapLibre web worker (static, un-bundled)
 scripts/
   resolve-places.cjs  re-fetch + normalise the photos
 ```

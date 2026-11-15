@@ -1,17 +1,111 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { Minus, Move, Plus, RotateCcw } from "lucide-react";
-import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { cn } from "@/lib/utils";
 
 const FOCUS = { lat: 22, lon: 88 };
 /** Where the focus sits across the hero. */
 const FOCUS_X = 0.7;
 
+/**
+ * Two keyed basemaps for comparison, plus a keyless OpenFreeMap fallback so
+ * the hero never ships broken. Pick one with `?map=mapbox|maptiler`; MapTiler
+ * is the default when its key is set because its quieter vector cartography
+ * lets the cream palette lead.
+ */
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim();
+const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY?.trim();
+
+type Provider = "mapbox" | "maptiler" | "openfreemap";
+type ProviderStyle = string | import("maplibre-gl").StyleSpecification;
+
+/**
+ * MapLibre can't read Mapbox's `mapbox://` style URLs, so the Mapbox option
+ * is a raster style pointed at Mapbox's own pre-rendered tiles. It is the
+ * same cartography, just delivered as images.
+ */
+const MAPBOX_STYLE: ProviderStyle | null = MAPBOX_TOKEN
+  ? {
+      version: 8,
+      sources: {
+        mapbox: {
+          type: "raster",
+          tileSize: 512,
+          tiles: [
+            `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`,
+          ],
+        },
+      },
+      layers: [{ id: "mapbox", type: "raster", source: "mapbox" }],
+    }
+  : null;
+
+const PROVIDERS: Record<Provider, ProviderStyle | null> = {
+  mapbox: MAPBOX_STYLE,
+  maptiler: MAPTILER_KEY
+    ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
+    : null,
+  openfreemap: "https://tiles.openfreemap.org/styles/positron",
+};
+
+const DEFAULT_PROVIDER: Provider = MAPTILER_KEY
+  ? "maptiler"
+  : MAPBOX_TOKEN
+    ? "mapbox"
+    : "openfreemap";
+
+const CREDITS: Record<Provider, { label: string; href: string }[]> = {
+  mapbox: [
+    { label: "Mapbox", href: "https://www.mapbox.com/about/maps/" },
+    {
+      label: "OpenStreetMap",
+      href: "https://www.openstreetmap.org/copyright",
+    },
+  ],
+  maptiler: [
+    { label: "MapTiler", href: "https://www.maptiler.com/copyright/" },
+    {
+      label: "OpenStreetMap",
+      href: "https://www.openstreetmap.org/copyright",
+    },
+  ],
+  openfreemap: [
+    { label: "OpenMapTiles", href: "https://www.openmaptiles.org/" },
+    {
+      label: "OpenStreetMap",
+      href: "https://www.openstreetmap.org/copyright",
+    },
+    { label: "OpenFreeMap", href: "https://openfreemap.org" },
+  ],
+};
+
+let requestedProvider: Provider | null = null;
+let requestedResolved = false;
+
+const subscribe = () => () => {};
+const getServerProvider = () => DEFAULT_PROVIDER;
+const getClientProvider = () => {
+  if (!requestedResolved) {
+    requestedResolved = true;
+    const picked = new URLSearchParams(window.location.search).get("map");
+    if (picked && Object.keys(PROVIDERS).includes(picked)) {
+      const provider = picked as Provider;
+      if (PROVIDERS[provider]) requestedProvider = provider;
+    }
+  }
+  return requestedProvider ?? DEFAULT_PROVIDER;
+};
+
 /** Degrees of longitude visible at the current breakpoint. */
 const spanFor = (width: number) => (width >= 720 ? 74 : 44);
+
+/** MapLibre renders the world 512px wide at zoom 0. */
+const WORLD_PX = 512;
+/** Equator metres per pixel at zoom 0 for a 512px world. */
+const EQUATOR_M_PER_PX = 78271.51696;
 
 const formatLat = (value: number) =>
   `${Math.abs(value).toFixed(1)}°${value >= 0 ? "N" : "S"}`;
@@ -19,16 +113,22 @@ const formatLon = (value: number) =>
   `${Math.abs(value).toFixed(1)}°${value >= 0 ? "E" : "W"}`;
 
 export function MapBackdrop() {
+  const provider = useSyncExternalStore(
+    subscribe,
+    getClientProvider,
+    getServerProvider,
+  );
   const rootRef = useRef<HTMLDivElement>(null);
   const mapElRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<import("leaflet").Map | null>(null);
+  const mapRef = useRef<import("maplibre-gl").Map | null>(null);
   const fitRef = useRef<() => void>(() => {});
 
   const [hinted, setHinted] = useState(false);
+  const touchedRef = useRef(false);
 
   useEffect(() => {
     let disposed = false;
-    let map: import("leaflet").Map | null = null;
+    let map: import("maplibre-gl").Map | null = null;
     let observer: ResizeObserver | null = null;
 
     const finePointer = window.matchMedia("(pointer: fine)").matches;
@@ -43,100 +143,147 @@ export function MapBackdrop() {
         chip.textContent = `${formatLat(center.lat)} · ${formatLon(center.lng)}`;
       }
       if (bar) {
-        const size = map.getSize();
-        const from = map.containerPointToLatLng([
-          size.x / 2 - 60,
-          size.y / 2,
-        ]);
-        const to = map.containerPointToLatLng([size.x / 2 + 60, size.y / 2]);
-        const km = map.distance(from, to) / 1000;
+        const metresPerPixel =
+          (EQUATOR_M_PER_PX * Math.cos((center.lat * Math.PI) / 180)) /
+          Math.pow(2, map.getZoom());
+        const km = (metresPerPixel * 120) / 1000;
         bar.textContent = `${Math.max(1, Math.round(km / 10) * 10)} km`;
       }
     };
 
     (async () => {
-      const L = (await import("leaflet")).default;
+      const maplibre = await import("maplibre-gl");
       if (disposed || !mapElRef.current) return;
 
-      map = L.map(mapElRef.current, {
-        zoomControl: false,
+      // The worker ships as a static file so Turbopack never rewrites it.
+      maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
+
+      const instance = new maplibre.Map({
+        container: mapElRef.current,
+        style: PROVIDERS[provider] ?? PROVIDERS.openfreemap!,
+        center: [FOCUS.lon, FOCUS.lat],
+        zoom: 4,
         attributionControl: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: true,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
         boxZoom: false,
-        keyboard: true,
-        dragging: finePointer,
-        touchZoom: finePointer,
-        inertia: finePointer,
-        worldCopyJump: true,
-        zoomSnap: 0.25,
-        zoomDelta: 0.75,
         minZoom: 2,
         maxZoom: 9,
+        fadeDuration: 0,
+        renderWorldCopies: true,
+        // MapTiler's style carries a top-level `name` that MapLibre v6's
+        // runtime validator rejects; the style itself renders fine.
+        validateStyle: false,
       });
-      mapRef.current = map;
+      map = instance;
+      mapRef.current = instance;
 
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        {
-          subdomains: "abcd",
-          maxZoom: 20,
-          detectRetina: true,
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        },
-      ).addTo(map);
+      instance.scrollZoom.disable();
+      instance.boxZoom.disable();
+      instance.doubleClickZoom.enable();
+      instance.keyboard.enable();
+      if (!finePointer) {
+        instance.dragPan.disable();
+        instance.touchZoomRotate.disable();
+      }
 
       const fit = () => {
         const root = rootRef.current;
-        if (!root || !map) return;
-        const width = root.clientWidth || 1;
-        const span = spanFor(width);
+        if (!root) return;
+        const span = spanFor(root.clientWidth || 1);
         // Show `span` degrees across the hero, with India at FOCUS_X.
-        const zoom = Math.log2((width * 360) / span / 256);
+        const zoom = Math.log2((root.clientWidth * 360) / span / WORLD_PX);
         const lon = FOCUS.lon - (FOCUS_X - 0.5) * span;
-        map.setView([FOCUS.lat, lon], zoom, { animate: false });
+        instance.jumpTo({ center: [lon, FOCUS.lat], zoom });
         sync();
       };
       fitRef.current = fit;
       fit();
 
-      map.on("move zoom resize", sync);
-      map.on("dragstart", () => setHinted(true));
+      instance.on("move", sync);
+      instance.on("resize", sync);
+      instance.on("dragstart", () => {
+        touchedRef.current = true;
+        setHinted(true);
+      });
+      instance.once("load", () => {
+        const root = rootRef.current;
+        if (root) root.dataset.mapReady = "true";
+        // Re-frame once the style and the final layout are in place.
+        if (!touchedRef.current) fit();
+        sync();
+      });
 
-      map.getContainer().setAttribute(
-        "aria-label",
-        "Map background. Drag to pan, use the plus and minus buttons to zoom.",
-      );
+      instance
+        .getContainer()
+        .setAttribute(
+          "aria-label",
+          "Map of Asia. Drag to pan, use the plus and minus buttons to zoom.",
+        );
 
       observer = new ResizeObserver(() => {
-        if (!map) return;
-        map.invalidateSize();
-        sync();
+        instance.resize();
+        if (touchedRef.current) sync();
+        else fit();
       });
       if (rootRef.current) observer.observe(rootRef.current);
     })();
 
-    const root = rootRef.current;
-    const onPointerMove = (event: PointerEvent) => {
-      if (!root) return;
-      const rect = root.getBoundingClientRect();
-      root.style.setProperty("--mx", `${event.clientX - rect.left}px`);
-      root.style.setProperty("--my", `${event.clientY - rect.top}px`);
-    };
-    root?.addEventListener("pointermove", onPointerMove);
-
     return () => {
       disposed = true;
       observer?.disconnect();
-      root?.removeEventListener("pointermove", onPointerMove);
       map?.remove();
       mapRef.current = null;
+    };
+  }, [provider]);
+
+  /**
+   * Keep the map pinned to the viewport while the hero scrolls past. The
+   * hero's `overflow-hidden` clips it at the section edge, so it never
+   * leaks behind the cream sections below.
+   */
+  useEffect(() => {
+    const root = rootRef.current;
+    const hero = root?.parentElement;
+    if (!root || !hero) return;
+
+    let frame = 0;
+    const apply = () => {
+      frame = 0;
+      const offset = Math.min(
+        Math.max(0, window.scrollY - hero.offsetTop),
+        hero.offsetHeight,
+      );
+      root.style.transform = offset
+        ? `translate3d(0, ${offset}px, 0)`
+        : "";
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
+
+    apply();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      root.style.transform = "";
     };
   }, []);
 
   function zoom(factor: number) {
-    mapRef.current?.zoomIn(factor, { animate: true });
+    const map = mapRef.current;
+    if (!map) return;
+    map.easeTo({
+      zoom: map.getZoom() + factor,
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0
+        : 220,
+    });
   }
 
   return (
@@ -149,6 +296,7 @@ export function MapBackdrop() {
         className="absolute inset-0 h-full w-full"
         role="region"
         aria-label="Map of Asia"
+        tabIndex={0}
       />
 
       <div
@@ -242,23 +390,19 @@ export function MapBackdrop() {
 
         <span className="rounded-full bg-cream/80 px-2 py-0.5 text-[9px] leading-relaxed text-muted backdrop-blur">
           ©{" "}
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noreferrer"
-            className="underline decoration-line-strong underline-offset-2 hover:text-ink"
-          >
-            OpenStreetMap
-          </a>{" "}
-          ·{" "}
-          <a
-            href="https://carto.com/attributions"
-            target="_blank"
-            rel="noreferrer"
-            className="underline decoration-line-strong underline-offset-2 hover:text-ink"
-          >
-            CARTO
-          </a>
+          {CREDITS[provider].map((credit, index) => (
+            <span key={credit.href}>
+              {index > 0 && " · "}
+              <a
+                href={credit.href}
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-line-strong underline-offset-2 hover:text-ink"
+              >
+                {credit.label}
+              </a>
+            </span>
+          ))}
         </span>
       </div>
     </div>

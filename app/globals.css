@@ -285,31 +285,38 @@
 }
 
 /*
-  Hero map overrides live outside @layer so they win over Leaflet's own
-  stylesheet, which is unlayered. Without this, Leaflet's default grey
-  container background beats our sage one.
+  Hero map overrides live outside @layer so they win over MapLibre's own
+  stylesheet, which is unlayered.
 */
-.hero-map .leaflet-container {
+.hero-map {
+  will-change: transform;
+}
+
+.hero-map .maplibregl-map {
+  position: absolute;
+  inset: 0;
   background: #dbe7e0;
   font-family: inherit;
-  cursor: grab;
 }
 
-.hero-map .leaflet-container:active {
-  cursor: grabbing;
-}
-
-.hero-map .leaflet-container:focus-visible {
+.hero-map .maplibregl-map:focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: -2px;
 }
 
-/* Warm the tiles down so they sit inside the cream palette. */
-.hero-map .leaflet-tile-pane {
-  filter: saturate(0.55) sepia(0.12) brightness(1.03) contrast(0.94);
+/* Warm the basemap down so it sits inside the cream palette. */
+.hero-map .maplibregl-canvas {
+  filter: saturate(0.78) sepia(0.08) brightness(1.02) contrast(1);
+  opacity: 0;
+  transition: opacity 480ms ease-out;
 }
 
-/* Controls and attribution are ours, rendered above the cream wash. */
-.hero-map .leaflet-control-container {
-  display: none;
+.hero-map[data-map-ready="true"] .maplibregl-canvas {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-map .maplibregl-canvas {
+    transition: none;
+  }
 }

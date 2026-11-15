@@ -76,7 +76,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <style>{`.reveal{opacity:1!important;transform:none!important}`}</style>
         </noscript>
         {children}
-        <Analytics />
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );

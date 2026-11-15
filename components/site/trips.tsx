@@ -51,7 +51,7 @@ export function Trips() {
             role="tablist"
             aria-label="Trips priced on this page"
             aria-orientation="vertical"
-            className="flex flex-col border-t border-line"
+            className="flex min-w-0 flex-col border-t border-line"
           >
             {trips.map((item, index) => (
               <button
