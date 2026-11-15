@@ -28,7 +28,7 @@ export function Nav() {
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-colors duration-300",
         scrolled || open
-          ? "border-b border-line bg-ink/80 backdrop-blur-xl"
+          ? "border-b border-line bg-cream/85 backdrop-blur-xl"
           : "border-b border-transparent",
       )}
     >
@@ -36,16 +36,12 @@ export function Nav() {
         <a
           href="#top"
           className="group flex items-center gap-2.5"
-          aria-label={`${site.legalName} — back to top`}
         >
-          <span className="grid size-8 place-items-center rounded-full bg-accent text-accent-ink transition-transform duration-300 group-hover:rotate-12">
-            <span className="font-serif text-lg italic leading-none">
-              {site.name.charAt(0).toLowerCase()}
-            </span>
+          <span className="grid size-8 place-items-center rounded-full bg-brand text-cream transition-transform duration-300 group-hover:-rotate-12">
+            <span className="font-serif text-lg italic leading-none">b</span>
           </span>
           <span className="text-[15px] font-medium tracking-tight">
-            {site.name.toLowerCase()}
-            <span className="text-muted">®</span>
+            {site.name}
           </span>
         </a>
 
@@ -54,7 +50,7 @@ export function Nav() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-full px-3.5 py-2 text-sm text-muted transition-colors hover:text-fog"
+              className="rounded-full px-3.5 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-ink"
             >
               {item.label}
             </a>
@@ -64,16 +60,16 @@ export function Nav() {
         <div className="hidden md:block">
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 rounded-full bg-fog px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-accent"
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-medium text-cream transition-colors hover:bg-brand"
           >
-            Book a call
+            Plan my trip
           </a>
         </div>
 
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="grid size-10 place-items-center rounded-full border border-line text-fog md:hidden"
+          className="grid size-10 place-items-center rounded-full border border-line-strong text-ink md:hidden"
           aria-expanded={open}
           aria-controls="mobile-menu"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -85,7 +81,7 @@ export function Nav() {
       <div
         id="mobile-menu"
         className={cn(
-          "overflow-hidden border-line transition-[max-height,opacity] duration-300 md:hidden",
+          "overflow-hidden border-line bg-cream transition-[max-height,opacity] duration-300 md:hidden",
           open ? "max-h-96 border-t opacity-100" : "max-h-0 opacity-0",
         )}
       >
@@ -95,7 +91,7 @@ export function Nav() {
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-3 text-base text-muted transition-colors hover:bg-white/5 hover:text-fog"
+              className="rounded-lg px-3 py-3 text-base text-muted transition-colors hover:bg-surface hover:text-ink"
             >
               {item.label}
             </a>
@@ -103,9 +99,9 @@ export function Nav() {
           <a
             href="#contact"
             onClick={() => setOpen(false)}
-            className="mt-2 rounded-full bg-accent px-4 py-3 text-center text-sm font-medium text-accent-ink"
+            className="mt-2 rounded-full bg-ink px-4 py-3 text-center text-sm font-medium text-cream"
           >
-            Book a call
+            Plan my trip
           </a>
         </nav>
       </div>

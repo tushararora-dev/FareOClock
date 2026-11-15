@@ -1,18 +1,33 @@
 @import "tailwindcss";
 
+/*
+  Budget Banda — "Passport Cream"
+  Warm paper base, forest-green brand, marigold accent.
+  One dark surface (mission section) uses bg-ink + text-on-dark.
+*/
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-instrument-serif);
 
-  --color-ink: #07070a;
-  --color-ink-2: #0b0b11;
-  --color-ink-3: #12121a;
-  --color-fog: #f4f4ef;
-  --color-muted: #9a9aa6;
-  --color-accent: #c9f75c;
-  --color-accent-ink: #0a1002;
-  --color-line: rgba(255, 255, 255, 0.09);
+  --color-cream: #faf6ee;
+  --color-cream-2: #f3ece0;
+  --color-surface: #ffffff;
+
+  --color-ink: #14201b;
+  --color-muted: #64706a;
+
+  --color-brand: #1f5a45;
+  --color-brand-soft: #e7efe9;
+
+  --color-accent: #f2a33c;
+  --color-accent-soft: #fdf0dc;
+
+  --color-line: #e6dfd1;
+  --color-line-strong: #d6cbb8;
+
+  --color-on-dark: #f7f3ea;
+  --color-on-dark-muted: #9aa8a0;
 }
 
 @layer base {
@@ -28,20 +43,20 @@
   }
 
   body {
-    background-color: var(--color-ink);
-    color: var(--color-fog);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background-color: var(--color-accent);
-    color: var(--color-accent-ink);
+    background-color: var(--color-brand);
+    color: var(--color-cream);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-brand);
     outline-offset: 3px;
   }
 
@@ -53,13 +68,13 @@
 @layer components {
   .shell {
     width: 100%;
-    max-width: 78rem;
+    max-width: 76rem;
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 4vw, 2.75rem);
   }
 
   .section {
-    padding-block: clamp(4.5rem, 9vw, 8rem);
+    padding-block: clamp(3.5rem, 6.5vw, 5.5rem);
   }
 
   .eyebrow {
@@ -67,18 +82,16 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.6875rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--color-muted);
+    color: var(--color-brand);
   }
 
-  .surface {
+  .card {
     border: 1px solid var(--color-line);
     border-radius: 1.25rem;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
-      var(--color-ink-2);
+    background-color: var(--color-surface);
   }
 
   .hairline {
@@ -87,30 +100,44 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.14),
+      var(--color-line-strong),
       transparent
     );
   }
 }
 
 @layer utilities {
-  .text-gradient {
-    background-image: linear-gradient(180deg, #ffffff 20%, #9a9aa6 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
   .bg-grid {
     background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 76px 76px;
+      linear-gradient(to right, rgba(20, 32, 27, 0.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(20, 32, 27, 0.055) 1px, transparent 1px);
+    background-size: 72px 72px;
     mask-image: radial-gradient(
-      ellipse 70% 60% at 50% 0%,
+      ellipse 75% 65% at 50% 0%,
       black 10%,
-      transparent 72%
+      transparent 74%
     );
+  }
+
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(to right, rgba(247, 243, 234, 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(247, 243, 234, 0.07) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(
+      ellipse 70% 70% at 50% 0%,
+      black 5%,
+      transparent 78%
+    );
+  }
+
+  .glow {
+    background: radial-gradient(
+      circle at center,
+      rgba(242, 163, 60, 0.22),
+      transparent 66%
+    );
+    filter: blur(46px);
   }
 
   .noise::after {
@@ -118,31 +145,65 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.04;
+    opacity: 0.028;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  .glow {
-    background: radial-gradient(
-      circle at center,
-      rgba(201, 247, 92, 0.18),
-      transparent 65%
-    );
-    filter: blur(40px);
   }
 
   .mask-fade-x {
     mask-image: linear-gradient(
       90deg,
       transparent,
-      black 12%,
-      black 88%,
+      black 10%,
+      black 90%,
       transparent
     );
   }
 
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .panel-in {
+    animation: panel-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* --- Draggable map --- */
+  .map-layer {
+    will-change: transform;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .map-layer[data-dragging="true"] {
+    transition: none;
+  }
+
+  .map-light {
+    background: radial-gradient(
+      240px circle at var(--mx, 62%) var(--my, 42%),
+      rgba(242, 163, 60, 0.18),
+      transparent 72%
+    );
+  }
+
+  .map-route {
+    animation: route-dash 2.6s linear infinite;
+  }
+
+  .map-ping {
+    animation: pin-pulse 2.6s ease-out infinite;
+  }
+
   .animate-marquee {
-    animation: marquee 36s linear infinite;
+    animation: marquee 42s linear infinite;
   }
 
   .group:hover .animate-marquee,
@@ -155,6 +216,59 @@
       animation: none;
     }
   }
+
+  /* --- Passport stamp --- */
+  .stamp-ring {
+    animation: stamp-spin 38s linear infinite;
+  }
+
+  .float-slow {
+    animation: float-y 7s ease-in-out infinite;
+  }
+
+  .float-slower {
+    animation: float-y 9s ease-in-out infinite;
+    animation-delay: -3s;
+  }
+
+  /* --- Journal / polaroid --- */
+  .tape {
+    background-color: color-mix(in oklab, var(--color-accent-soft) 92%, white);
+    box-shadow: 0 1px 2px rgba(20, 32, 27, 0.08);
+  }
+
+  /* --- Boarding pass perforation --- */
+  .perforation {
+    border-top: 1px dashed var(--color-line-strong);
+  }
+
+  .perforation-v {
+    border-left: 1px dashed var(--color-line-strong);
+  }
+
+  /* --- Scroll plane --- */
+  .scroll-plane {
+    animation: float-y 4.5s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stamp-ring,
+    .float-slow,
+    .float-slower,
+    .scroll-plane,
+    .map-route,
+    .map-ping {
+      animation: none;
+    }
+
+    .map-layer {
+      transition: none;
+    }
+
+    .panel-in {
+      animation: none;
+    }
+  }
 }
 
 @keyframes marquee {
@@ -163,5 +277,53 @@
   }
   to {
     transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes route-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes pin-pulse {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+@keyframes stamp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

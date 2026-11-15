@@ -5,39 +5,37 @@ import { faqs } from "@/lib/site";
 
 export function Faq() {
   return (
-    <section id="faq" className="section border-t border-line bg-ink-2/40">
-      <div className="shell grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
-        <div className="lg:sticky lg:top-28 lg:self-start">
-          <Reveal>
-            <SectionHeading
-              eyebrow="Questions"
-              title={
-                <>
-                  The stuff{" "}
-                  <span className="font-serif italic text-fog/60">
-                    everyone
-                  </span>{" "}
-                  asks.
-                </>
-              }
-              description="Still unsure about something? Send a two-line email — we answer every one."
-            />
-          </Reveal>
+    <section id="faq" className="section border-t border-line">
+      <div className="shell">
+        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+          <SectionHeading
+            eyebrow="07 · Questions"
+            title={
+              <>
+                The things{" "}
+                <span className="font-serif italic text-brand">everyone</span>{" "}
+                asks.
+              </>
+            }
+          />
+          <p className="max-w-xs text-sm leading-relaxed text-muted">
+            Still unsure? Send a two-line email. I answer every one myself.
+          </p>
         </div>
 
-        <div className="flex flex-col">
-          {faqs.map((faq, index) => (
-            <Reveal key={faq.question} delay={index * 0.04}>
-              <details className="group border-t border-line py-5 last:border-b">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-left [&::-webkit-details-marker]:hidden">
-                  <span className="text-base font-medium tracking-tight sm:text-lg">
+        <div className="mt-8 grid gap-x-10 sm:mt-10 sm:grid-cols-2">
+          {faqs.map((faq) => (
+            <Reveal key={faq.question} y={12}>
+              <details className="group border-t border-line py-4">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-5 text-left [&::-webkit-details-marker]:hidden">
+                  <span className="text-[15px] font-medium leading-snug tracking-tight">
                     {faq.question}
                   </span>
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full border border-line text-muted transition-colors duration-200 group-open:border-accent/40 group-open:text-accent">
-                    <Plus className="size-4 transition-transform duration-300 group-open:rotate-45" />
+                  <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-line text-muted transition-colors duration-200 group-open:border-brand/40 group-open:bg-brand-soft group-open:text-brand">
+                    <Plus className="size-3.5 transition-transform duration-300 group-open:rotate-45" />
                   </span>
                 </summary>
-                <p className="mt-3 max-w-xl text-pretty pb-1 pr-12 text-sm leading-relaxed text-muted">
+                <p className="mt-2.5 max-w-xl pr-8 text-sm leading-relaxed text-muted">
                   {faq.answer}
                 </p>
               </details>

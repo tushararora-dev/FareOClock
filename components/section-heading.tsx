@@ -28,7 +28,7 @@ export function SectionHeading({
         <span className="size-1.5 rounded-full bg-accent" aria-hidden />
         {eyebrow}
       </span>
-      <h2 className="max-w-2xl text-balance text-[clamp(2rem,4.2vw,3.25rem)] font-medium leading-[1.05] tracking-[-0.035em]">
+      <h2 className="max-w-2xl text-balance text-[clamp(2rem,4.2vw,3.2rem)] font-medium leading-[1.06] tracking-[-0.035em]">
         {title}
       </h2>
       {description ? (

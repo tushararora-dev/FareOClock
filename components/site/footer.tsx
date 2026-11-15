@@ -12,35 +12,35 @@ export async function Footer() {
   return (
     <footer className="border-t border-line">
       <div className="shell py-12 sm:py-16">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr]">
           <div>
             <a href="#top" className="flex items-center gap-2.5">
-              <span className="grid size-8 place-items-center rounded-full bg-accent text-accent-ink">
-                <span className="font-serif text-lg italic leading-none">
-                  {site.name.charAt(0).toLowerCase()}
-                </span>
+              <span className="grid size-8 place-items-center rounded-full bg-brand text-cream">
+                <span className="font-serif text-lg italic leading-none">b</span>
               </span>
               <span className="text-[15px] font-medium tracking-tight">
-                {site.name.toLowerCase()}
-                <span className="text-muted">®</span>
+                {site.name}
               </span>
             </a>
             <p className="mt-4 max-w-xs text-pretty text-sm leading-relaxed text-muted">
-              A small design studio for ambitious teams. Brand, web and product
-              — built to be remembered.
+              {site.tagline} Custom itineraries and 1:1 sessions for people who
+              want the whole world, not just the brochure version.
+            </p>
+            <p className="mt-4 font-serif text-lg italic text-brand">
+              {site.mission}
             </p>
           </div>
 
           <div>
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted">
-              Studio
+              Explore
             </p>
             <ul className="mt-4 flex flex-col gap-2.5 text-sm">
               {nav.map((item) => (
                 <li key={item.href}>
                   <a
                     href={item.href}
-                    className="text-fog/80 transition-colors hover:text-fog"
+                    className="text-ink/75 transition-colors hover:text-ink"
                   >
                     {item.label}
                   </a>
@@ -49,7 +49,7 @@ export async function Footer() {
               <li>
                 <a
                   href="#contact"
-                  className="text-fog/80 transition-colors hover:text-fog"
+                  className="text-ink/75 transition-colors hover:text-ink"
                 >
                   Contact
                 </a>
@@ -68,7 +68,7 @@ export async function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="group inline-flex items-center gap-1 text-fog/80 transition-colors hover:text-fog"
+                    className="group inline-flex items-center gap-1 text-ink/75 transition-colors hover:text-ink"
                   >
                     {social.label}
                     <ArrowUpRight className="size-3 text-muted transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -78,7 +78,7 @@ export async function Footer() {
             </ul>
             <a
               href={`mailto:${site.email}`}
-              className="mt-5 inline-block text-sm text-muted underline-offset-4 hover:text-fog hover:underline"
+              className="mt-5 inline-block text-sm text-muted underline-offset-4 hover:text-ink hover:underline"
             >
               {site.email}
             </a>
@@ -90,11 +90,15 @@ export async function Footer() {
             © {year} {site.legalName}. All rights reserved.
           </p>
           <p className="flex items-center gap-4">
-            <a href="#top" className="transition-colors hover:text-fog">
+            <a href="/credits" className="transition-colors hover:text-ink">
+              Photo credits
+            </a>
+            <span aria-hidden>·</span>
+            <a href="#top" className="transition-colors hover:text-ink">
               Back to top
             </a>
             <span aria-hidden>·</span>
-            <span>Built with Next.js</span>
+            <span>{site.domain}</span>
           </p>
         </div>
       </div>

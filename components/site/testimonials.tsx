@@ -1,44 +1,40 @@
 import { Quote } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { SectionHeading } from "@/components/section-heading";
 import { testimonials } from "@/lib/site";
 
 export function Testimonials() {
   return (
-    <section
-      id="testimonials"
-      className="section border-y border-line bg-ink-2/40"
-    >
+    <section className="border-y border-line bg-cream-2/70 py-10 sm:py-12">
       <div className="shell">
-        <Reveal>
-          <SectionHeading
-            eyebrow="Client words"
-            align="center"
-            className="mx-auto max-w-2xl items-center text-center"
-            title={
-              <>
-                Teams keep coming{" "}
-                <span className="font-serif italic text-fog/60">back</span>.
-              </>
-            }
-          />
-        </Reveal>
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <span className="eyebrow">
+            <span className="size-1.5 rounded-full bg-accent" aria-hidden />
+            05 · Trip notes
+          </span>
+          <p className="text-xs text-muted">
+            Unedited, from people who paid for the work.
+          </p>
+        </div>
 
-        <div className="mt-12 grid gap-4 sm:mt-16 lg:grid-cols-3">
+        <div className="mt-6 grid gap-6 sm:grid-cols-3 sm:gap-8">
           {testimonials.map((item, index) => (
-            <Reveal key={item.name} delay={index * 0.06}>
-              <figure className="flex h-full flex-col rounded-2xl border border-line bg-ink p-6 sm:p-7">
-                <Quote className="size-6 text-accent/70" strokeWidth={1.5} />
-                <blockquote className="mt-5 flex-1 text-pretty text-[15px] leading-relaxed text-fog/90">
-                  “{item.quote}”
+            <Reveal key={item.name} delay={index * 0.05} y={12}>
+              <figure className="flex h-full flex-col">
+                <Quote
+                  className="size-4 text-accent"
+                  strokeWidth={2}
+                  aria-hidden
+                />
+                <blockquote className="mt-2.5 flex-1 text-pretty text-sm leading-relaxed text-ink/85">
+                  &ldquo;{item.quote}&rdquo;
                 </blockquote>
-                <figcaption className="mt-7 flex items-center gap-3 border-t border-line pt-5">
-                  <span className="grid size-9 place-items-center rounded-full border border-line bg-white/[0.04] text-[11px] font-medium text-muted">
+                <figcaption className="mt-3 flex items-center gap-2.5">
+                  <span className="grid size-7 place-items-center rounded-full bg-brand text-[10px] font-medium text-cream">
                     {item.initials}
                   </span>
-                  <span className="flex flex-col">
-                    <span className="text-sm font-medium">{item.name}</span>
-                    <span className="text-xs text-muted">{item.role}</span>
+                  <span className="text-xs">
+                    <span className="font-medium">{item.name}</span>
+                    <span className="text-muted"> · {item.role}</span>
                   </span>
                 </figcaption>
               </figure>

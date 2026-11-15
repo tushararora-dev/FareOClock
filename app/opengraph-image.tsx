@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { site } from "@/lib/site";
 
-export const alt = `${site.legalName} — Brand, web & product design`;
+export const alt = `${site.name} — Custom itineraries & 1:1 travel sessions`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -17,46 +17,67 @@ export default async function OpengraphImage() {
           justifyContent: "space-between",
           padding: "72px",
           background:
-            "radial-gradient(circle at 15% 0%, #1a2410 0%, #07070a 55%)",
-          color: "#f4f4ef",
+            "radial-gradient(circle at 88% 0%, #fdf0dc 0%, #faf6ee 52%)",
+          color: "#14201b",
           fontFamily: "sans-serif",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div
             style={{
-              width: 44,
-              height: 44,
+              width: 46,
+              height: 46,
               borderRadius: 999,
-              background: "#c9f75c",
+              background: "#1f5a45",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#0a1002",
-              fontSize: 24,
-              fontWeight: 700,
+              color: "#faf6ee",
+              fontSize: 26,
+              fontStyle: "italic",
             }}
           >
-            A
+            b
           </div>
-          <div style={{ fontSize: 26, letterSpacing: "-0.02em" }}>
-            {site.legalName}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            <div style={{ fontSize: 24, letterSpacing: "-0.02em" }}>
+              {site.name}
+            </div>
+            <div style={{ fontSize: 15, color: "#6b756f" }}>{site.tagline}</div>
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div
             style={{
-              fontSize: 76,
-              lineHeight: 1.05,
-              letterSpacing: "-0.03em",
+              fontSize: 78,
+              lineHeight: 1.04,
+              letterSpacing: "-0.035em",
               maxWidth: 900,
             }}
           >
-            Design that earns attention.
+            See the whole world.
           </div>
-          <div style={{ fontSize: 28, color: "#9a9aa6", maxWidth: 720 }}>
-            Brand identity, websites and product design for ambitious teams.
+          <div
+            style={{
+              fontSize: 78,
+              lineHeight: 1.04,
+              letterSpacing: "-0.035em",
+              fontStyle: "italic",
+              color: "#1f5a45",
+            }}
+          >
+            On a small budget.
+          </div>
+          <div style={{ fontSize: 26, color: "#6b756f", maxWidth: 760 }}>
+            Custom itineraries and 1:1 travel sessions. Trips from INR 7,000,
+            planned around your budget.
           </div>
         </div>
 
@@ -65,11 +86,11 @@ export default async function OpengraphImage() {
             display: "flex",
             justifyContent: "space-between",
             fontSize: 22,
-            color: "#9a9aa6",
+            color: "#6b756f",
           }}
         >
           <span>{site.domain}</span>
-          <span>{site.location}</span>
+          <span>Itineraries · Visa help · Points · Volunteer travel</span>
         </div>
       </div>
     ),

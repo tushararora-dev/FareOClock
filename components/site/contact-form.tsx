@@ -4,11 +4,11 @@ import { useActionState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { submitEnquiry } from "@/app/actions";
 import { initialContactState } from "@/lib/contact";
-import { budgets, site } from "@/lib/site";
+import { budgets, enquiryServices, site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const inputClass =
-  "w-full rounded-xl border border-line bg-white/[0.03] px-3.5 py-3 text-sm text-fog placeholder:text-muted/60 transition-colors focus:border-accent/50 focus:bg-white/[0.05] focus:outline-none";
+  "w-full rounded-xl border border-line-strong bg-cream/70 px-3.5 py-3 text-sm text-ink placeholder:text-muted transition-colors focus:border-brand/50 focus:bg-surface focus:outline-none";
 
 export function ContactForm() {
   const [state, formAction, pending] = useActionState(
@@ -18,13 +18,13 @@ export function ContactForm() {
 
   if (state.status === "success") {
     return (
-      <div className="flex flex-col items-start gap-4 rounded-2xl border border-accent/30 bg-ink p-7 sm:p-8">
-        <span className="grid size-11 place-items-center rounded-full bg-accent text-accent-ink">
+      <div className="flex flex-col items-start gap-4 rounded-2xl border border-brand/25 bg-cream/60 p-7 sm:p-8">
+        <span className="grid size-11 place-items-center rounded-full bg-brand text-cream">
           <Check className="size-5" strokeWidth={2.4} />
         </span>
         <div>
           <h3 className="text-lg font-medium tracking-tight">
-            Message received
+            Enquiry received
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             {state.message}
@@ -32,7 +32,7 @@ export function ContactForm() {
         </div>
         <a
           href={`mailto:${site.email}`}
-          className="text-sm text-accent underline-offset-4 hover:underline"
+          className="text-sm text-brand underline-offset-4 hover:underline"
         >
           {site.email}
         </a>
@@ -49,7 +49,7 @@ export function ContactForm() {
             name="name"
             type="text"
             autoComplete="name"
-            placeholder="Priya Raman"
+            placeholder="Ritika Sharma"
             className={inputClass}
             aria-invalid={Boolean(state.errors?.name)}
           />
@@ -61,7 +61,7 @@ export function ContactForm() {
             name="email"
             type="email"
             autoComplete="email"
-            placeholder="you@company.com"
+            placeholder="you@email.com"
             className={inputClass}
             aria-invalid={Boolean(state.errors?.email)}
           />
@@ -69,24 +69,19 @@ export function ContactForm() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Company" htmlFor="company" optional>
-          <input
-            id="company"
-            name="company"
-            type="text"
-            autoComplete="organization"
-            placeholder="Acme Inc."
-            className={inputClass}
-          />
+        <Field label="What do you need?" htmlFor="service">
+          <select id="service" name="service" defaultValue="" className={inputClass}>
+            <option value="">Select a service</option>
+            {enquiryServices.map((service) => (
+              <option key={service} value={service}>
+                {service}
+              </option>
+            ))}
+          </select>
         </Field>
 
-        <Field label="Budget" htmlFor="budget" optional>
-          <select
-            id="budget"
-            name="budget"
-            defaultValue=""
-            className={cn(inputClass, "appearance-none bg-ink-2")}
-          >
+        <Field label="Your budget" htmlFor="budget" optional>
+          <select id="budget" name="budget" defaultValue="" className={inputClass}>
             <option value="">Select a range</option>
             {budgets.map((budget) => (
               <option key={budget} value={budget}>
@@ -97,16 +92,26 @@ export function ContactForm() {
         </Field>
       </div>
 
+      <Field label="Where to?" htmlFor="destination" optional>
+        <input
+          id="destination"
+          name="destination"
+          type="text"
+          placeholder="Nepal in March, or 3 countries in 10 days…"
+          className={inputClass}
+        />
+      </Field>
+
       <Field
-        label="Project details"
+        label="Tell me about the trip"
         htmlFor="message"
         error={state.errors?.message}
       >
         <textarea
           id="message"
           name="message"
-          rows={5}
-          placeholder="What are you building, and what does success look like?"
+          rows={4}
+          placeholder="Who's coming, how many days, what you want out of it, and anything you're stuck on."
           className={cn(inputClass, "resize-none")}
           aria-invalid={Boolean(state.errors?.message)}
         />
@@ -119,7 +124,7 @@ export function ContactForm() {
       </div>
 
       {state.status === "error" && state.message ? (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-sm text-red-700">
           {state.message}
         </p>
       ) : null}
@@ -128,11 +133,11 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={pending}
-          className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-ink transition-all duration-200 hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+          className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-cream transition-colors hover:bg-brand disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
           {pending ? (
             <>
-              <span className="size-3.5 animate-spin rounded-full border-2 border-accent-ink/30 border-t-accent-ink" />
+              <span className="size-3.5 animate-spin rounded-full border-2 border-cream/30 border-t-cream" />
               Sending…
             </>
           ) : (
@@ -146,7 +151,7 @@ export function ContactForm() {
           Or email{" "}
           <a
             href={`mailto:${site.email}`}
-            className="text-fog underline-offset-4 hover:underline"
+            className="text-ink underline-offset-4 hover:underline"
           >
             {site.email}
           </a>
@@ -176,11 +181,11 @@ function Field({
         className="flex items-center justify-between text-xs text-muted"
       >
         <span>{label}</span>
-        {optional ? <span className="text-muted/50">Optional</span> : null}
+        {optional ? <span className="text-muted">Optional</span> : null}
       </label>
       {children}
       {error ? (
-        <p className="text-xs text-red-300" role="alert">
+        <p className="text-xs text-red-700" role="alert">
           {error}
         </p>
       ) : null}

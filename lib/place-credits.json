@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "india",
+    "place": "Taj Mahal Agra",
+    "title": "Taj Mahal, Agra, India edit2.jpg",
+    "author": "Yann ; edited by King of Hearts",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Taj_Mahal,_Agra,_India_edit2.jpg",
+    "width": 1400,
+    "height": 920
+  },
+  {
+    "slug": "nepal",
+    "place": "Boudhanath stupa Kathmandu",
+    "title": "Boudhanath stupa, Kathmandu 01.jpg",
+    "author": "Bernard Gagnon",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Boudhanath_stupa,_Kathmandu_01.jpg",
+    "width": 1400,
+    "height": 933
+  },
+  {
+    "slug": "uae",
+    "place": "Burj Khalifa Dubai",
+    "title": "Dubai Skyline mit Burj Khalifa (cropped).jpg",
+    "author": "Tim Reckmann from Hamm, Deutschland",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dubai_Skyline_mit_Burj_Khalifa_(cropped).jpg",
+    "width": 1400,
+    "height": 579
+  },
+  {
+    "slug": "malaysia",
+    "place": "Petronas Towers Kuala Lumpur",
+    "title": "Kuala Lumpur Malaysia Petronas-Twin-Towers-01.jpg",
+    "author": "CEphoto, Uwe Aranas",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Kuala_Lumpur_Malaysia_Petronas-Twin-Towers-01.jpg",
+    "width": 1400,
+    "height": 933
+  },
+  {
+    "slug": "singapore",
+    "place": "Marina Bay Sands Singapore",
+    "title": "Puente Helix, museo ArtScience y hotel Marina Bay Sands, Marina Bay, Singapur, 2023-08-17, DD 67-69 HDR.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Puente_Helix,_museo_ArtScience_y_hotel_Marina_Bay_Sands,_Marina_Bay,_Singapur,_2023-08-17,_DD_67-69_HDR.jpg",
+    "width": 1400,
+    "height": 796
+  },
+  {
+    "slug": "vietnam",
+    "place": "Ha Long Bay Vietnam",
+    "title": "View of sea from Titov Island, Ha Long Bay, Vietnam, 20240128 1337 3732.jpg",
+    "author": "Jakub Hałun",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:View_of_sea_from_Titov_Island,_Ha_Long_Bay,_Vietnam,_20240128_1337_3732.jpg",
+    "width": 1400,
+    "height": 935
+  },
+  {
+    "slug": "hongkong",
+    "place": "Victoria Harbour Hong Kong skyline",
+    "title": "Hong Kong Skyline Restitch - Dec 2007.jpg",
+    "author": "Diliff",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Hong_Kong_Skyline_Restitch_-_Dec_2007.jpg",
+    "width": 1400,
+    "height": 607
+  },
+  {
+    "slug": "macau",
+    "place": "Senado Square Macau",
+    "title": "Macau - Senado Square.jpg",
+    "author": "kewl",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Macau_-_Senado_Square.jpg",
+    "width": 1400,
+    "height": 935
+  },
+  {
+    "slug": "philippines",
+    "place": "Chocolate Hills Bohol",
+    "title": "Chocolate Hills Carmen Bohol 2019.jpg",
+    "author": "Wolfgang Hägele",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Chocolate_Hills_Carmen_Bohol_2019.jpg",
+    "width": 1400,
+    "height": 933
+  },
+  {
+    "slug": "thailand",
+    "place": "Wat Arun Bangkok",
+    "title": "Templo Wat Arun, Bangkok, Tailandia, 2013-08-22, DD 30.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Templo_Wat_Arun,_Bangkok,_Tailandia,_2013-08-22,_DD_30.jpg",
+    "width": 1400,
+    "height": 936
+  }
+]
