@@ -7,8 +7,8 @@
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:Taj_Mahal,_Agra,_India_edit2.jpg",
-    "width": 1400,
-    "height": 920
+    "width": 3840,
+    "height": 2525
   },
   {
     "slug": "nepal",
@@ -18,8 +18,8 @@
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:Boudhanath_stupa,_Kathmandu_01.jpg",
-    "width": 1400,
-    "height": 933
+    "width": 3802,
+    "height": 2535
   },
   {
     "slug": "uae",
@@ -29,8 +29,8 @@
     "license": "CC BY-SA 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Dubai_Skyline_mit_Burj_Khalifa_(cropped).jpg",
-    "width": 1400,
-    "height": 579
+    "width": 3840,
+    "height": 1588
   },
   {
     "slug": "malaysia",
@@ -40,8 +40,8 @@
     "license": "CC BY-SA 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Kuala_Lumpur_Malaysia_Petronas-Twin-Towers-01.jpg",
-    "width": 1400,
-    "height": 933
+    "width": 3840,
+    "height": 2560
   },
   {
     "slug": "singapore",
@@ -51,8 +51,8 @@
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:Puente_Helix,_museo_ArtScience_y_hotel_Marina_Bay_Sands,_Marina_Bay,_Singapur,_2023-08-17,_DD_67-69_HDR.jpg",
-    "width": 1400,
-    "height": 796
+    "width": 3840,
+    "height": 2181
   },
   {
     "slug": "vietnam",
@@ -62,8 +62,8 @@
     "license": "CC BY 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:View_of_sea_from_Titov_Island,_Ha_Long_Bay,_Vietnam,_20240128_1337_3732.jpg",
-    "width": 1400,
-    "height": 935
+    "width": 3840,
+    "height": 2563
   },
   {
     "slug": "hongkong",
@@ -73,8 +73,8 @@
     "license": "CC BY 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Hong_Kong_Skyline_Restitch_-_Dec_2007.jpg",
-    "width": 1400,
-    "height": 607
+    "width": 3840,
+    "height": 1666
   },
   {
     "slug": "macau",
@@ -84,8 +84,8 @@
     "license": "CC BY 2.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "source": "https://commons.wikimedia.org/wiki/File:Macau_-_Senado_Square.jpg",
-    "width": 1400,
-    "height": 935
+    "width": 3840,
+    "height": 2563
   },
   {
     "slug": "philippines",
@@ -95,8 +95,8 @@
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:Chocolate_Hills_Carmen_Bohol_2019.jpg",
-    "width": 1400,
-    "height": 933
+    "width": 3840,
+    "height": 2560
   },
   {
     "slug": "thailand",
@@ -106,7 +106,29 @@
     "license": "CC BY-SA 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Templo_Wat_Arun,_Bangkok,_Tailandia,_2013-08-22,_DD_30.jpg",
-    "width": 1400,
-    "height": 936
+    "width": 3840,
+    "height": 2565
+  },
+  {
+    "slug": "banahills",
+    "place": "Golden Bridge Ba Na Hills Da Nang",
+    "title": "Golden Bridge at Ba Na Hills 20250718.jpg",
+    "author": "DvTor8303",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Golden_Bridge_at_Ba_Na_Hills_20250718.jpg",
+    "width": 3840,
+    "height": 2483
+  },
+  {
+    "slug": "disneyland-day",
+    "place": "Sleeping Beauty Castle Disneyland",
+    "title": "Sleeping Beauty Castle (29427993916).jpg",
+    "author": "HarshLight",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sleeping_Beauty_Castle_(29427993916).jpg",
+    "width": 3840,
+    "height": 2560
   }
 ]

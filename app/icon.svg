@@ -1,14 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect width="64" height="64" rx="16" fill="#faf6ee" />
-  <circle cx="32" cy="32" r="21" fill="#1f5a45" />
-  <text
-    x="32"
-    y="43"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="30"
-    font-style="italic"
-    text-anchor="middle"
-    fill="#faf6ee"
-  >b</text>
-  <circle cx="32" cy="32" r="25.5" fill="none" stroke="#f2a33c" stroke-width="2.5" stroke-dasharray="3 5" />
+  <rect width="64" height="64" rx="14" fill="#faf6ee" />
+  <g transform="translate(32 32) scale(1.28) translate(-20 -20)">
+    <rect x="8" y="10" width="24" height="22" rx="4" fill="#1f5a45" />
+    <path d="M8 14.2A4.2 4.2 0 0 1 12.2 10h15.6A4.2 4.2 0 0 1 32 14.2v3H8v-3Z" fill="#f2a33c" />
+    <rect x="13" y="6.4" width="2.7" height="7" rx="1.35" fill="#1f5a45" />
+    <rect x="24.3" y="6.4" width="2.7" height="7" rx="1.35" fill="#1f5a45" />
+    <g transform="translate(8.6 14.46) scale(.95)">
+      <path d="M12 3.2c.8 0 1.45.65 1.45 1.45v3l5.4 3.3v1.45l-5.4-1.65v2.55l1.75 1.35v1.3L12 15.3l-3.2 1.55v-1.3l1.75-1.35v-2.55L5.15 11.9V10.45l5.4-3.3v-3c0-.8.65-1.45 1.45-1.45Z" fill="#faf6ee" />
+    </g>
+  </g>
 </svg>

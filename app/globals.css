@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  Budget Banda — "Passport Cream"
+  FareO'Clock — "Passport Cream"
   Warm paper base, forest-green brand, marigold accent.
   One dark surface (mission section) uses bg-ink + text-on-dark.
 */
@@ -32,8 +32,46 @@
 
 @layer base {
   html {
+    min-height: 100%;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: clip;
+  }
+
+  body {
+    min-height: 100%;
+    overflow-x: clip;
+  }
+
+  /* Firefox: standard scrollbar props (kept out of Chrome so it doesn't
+     override the richer ::-webkit-scrollbar styling below). */
+  @supports (-moz-appearance: none) {
+    html {
+      scrollbar-color: var(--color-brand) transparent;
+      scrollbar-width: thin;
+    }
+  }
+
+  /* Page + dropdown scrollbars match the passport-cream UI:
+     rounded brand-green thumb on a transparent track. */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--color-brand) 72%, transparent);
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand);
+    background-clip: padding-box;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -50,6 +88,16 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Running copy sits in clean justified blocks. Headings, buttons, nav
+     labels and form controls keep their own alignment. */
+  p,
+  li,
+  blockquote,
+  dd {
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
   ::selection {
     background-color: var(--color-brand);
     color: var(--color-cream);
@@ -60,8 +108,9 @@
     outline-offset: 3px;
   }
 
-  section[id] {
-    scroll-margin-top: 6rem;
+  section[id],
+  article[id] {
+    scroll-margin-top: 5.5rem;
   }
 }
 
@@ -74,7 +123,7 @@
   }
 
   .section {
-    padding-block: clamp(3.5rem, 6.5vw, 5.5rem);
+    padding-block: clamp(2.25rem, 6vh, 3.5rem);
   }
 
   .eyebrow {
@@ -163,6 +212,32 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Marker-pen highlight under a heading. */
+  .marker-underline {
+    background-image: linear-gradient(
+      100deg,
+      rgba(242, 163, 60, 0.42),
+      rgba(242, 163, 60, 0.42)
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 42%;
+    background-position: 0 92%;
+    border-radius: 1px;
+  }
+
+  /* Stronger yellow marker for copy sitting directly on the map. */
+  .marker-yellow {
+    background-image: linear-gradient(
+      100deg,
+      rgba(242, 163, 60, 0.58),
+      rgba(242, 163, 60, 0.58)
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 58%;
+    background-position: 0 88%;
+    border-radius: 1px;
+  }
+
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -172,8 +247,19 @@
     display: none;
   }
 
-  .panel-in {
-    animation: panel-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* --- Logo hover motion on brand link (header & footer) --- */
+  .brand-logo-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: center center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    will-change: transform;
+  }
+
+  .brand-link:hover .brand-logo-badge,
+  .group:hover .brand-logo-badge {
+    transform: rotate(-14deg) translateY(-2px) scale(1.1) !important;
   }
 
   /* --- Hero map helpers --- */
@@ -206,12 +292,24 @@
   }
 
   .float-slow {
-    animation: float-y 7s ease-in-out infinite;
+    animation: float-y 6s ease-in-out infinite;
   }
 
   .float-slower {
-    animation: float-y 9s ease-in-out infinite;
+    animation: float-y 8s ease-in-out infinite;
     animation-delay: -3s;
+  }
+
+  .float-sway {
+    animation: float-y 7s ease-in-out infinite;
+    animation-delay: -4.5s;
+  }
+
+  /* --- Hero notebook page air breeze flutter --- */
+  .page-breeze {
+    transform-origin: 2% 45%;
+    will-change: transform;
+    animation: page-breeze 7.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   }
 
   /* --- Journal / polaroid --- */
@@ -229,20 +327,12 @@
     border-left: 1px dashed var(--color-line-strong);
   }
 
-  /* --- Scroll plane --- */
-  .scroll-plane {
-    animation: float-y 4.5s ease-in-out infinite;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .stamp-ring,
     .float-slow,
     .float-slower,
-    .scroll-plane {
-      animation: none;
-    }
-
-    .panel-in {
+    .float-sway,
+    .page-breeze {
       animation: none;
     }
   }
@@ -266,57 +356,72 @@
 @keyframes float-y {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(4px, -9px, 0);
   }
   50% {
-    transform: translateY(-7px);
+    transform: translate3d(0, -16px, 0);
+  }
+  75% {
+    transform: translate3d(-4px, -7px, 0);
   }
 }
 
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+@keyframes page-breeze {
+  0%,
+  100% {
+    transform: rotate(-1.25deg) translate3d(0, 0, 0);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  22% {
+    transform: rotate(-0.75deg) translate3d(2px, -4px, 0) skewY(-0.35deg);
+  }
+  48% {
+    transform: rotate(-1.55deg) translate3d(3px, -8px, 0) skewY(0.45deg);
+  }
+  70% {
+    transform: rotate(-0.9deg) translate3d(1px, -3px, 0) skewY(-0.25deg);
+  }
+  86% {
+    transform: rotate(-1.4deg) translate3d(2px, -6px, 0) skewY(0.2deg);
   }
 }
 
 /*
-  Hero map overrides live outside @layer so they win over MapLibre's own
+  Map overrides live outside @layer so they win over MapLibre's own
   stylesheet, which is unlayered.
 */
-.hero-map {
-  will-change: transform;
-}
-
-.hero-map .maplibregl-map {
+.site-map .maplibregl-map {
   position: absolute;
   inset: 0;
   background: #dbe7e0;
   font-family: inherit;
 }
 
-.hero-map .maplibregl-map:focus-visible {
+.site-map .maplibregl-map:focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: -2px;
 }
 
+/* Taps that fall through to the map must not paint a focus ring. */
+.site-map .maplibregl-map:focus:not(:focus-visible) {
+  outline: none;
+}
+
 /* Warm the basemap down so it sits inside the cream palette. */
-.hero-map .maplibregl-canvas {
-  filter: saturate(0.78) sepia(0.08) brightness(1.02) contrast(1);
+.site-map .maplibregl-canvas {
+  filter: saturate(0.6) sepia(0.05) brightness(1.06) contrast(0.96);
   opacity: 0;
   transition: opacity 480ms ease-out;
 }
 
-.hero-map[data-map-ready="true"] .maplibregl-canvas {
+.site-map[data-map-ready="true"] .maplibregl-canvas {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-map .maplibregl-canvas {
+  .site-map .maplibregl-canvas {
     transition: none;
   }
 }

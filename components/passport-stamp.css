@@ -1,0 +1,108 @@
+.passport-stamp {
+  --stamp-opacity: 0.88;
+  --stamp-rotation: -9.5deg;
+  --stamp-impact-rotation: -11deg;
+  display: block;
+  width: var(--passport-stamp-size, 13.5rem);
+  max-width: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  color: #762b25;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+}
+
+.passport-stamp--red {
+  --stamp-opacity: 0.94;
+  /* Authentic deep vermilion / oxblood stamp pad ink */
+  color: #a2261e;
+}
+
+.passport-stamp--red .passport-stamp__impression {
+  filter: contrast(1.08) saturate(1.22);
+}
+
+.passport-stamp--green {
+  --stamp-opacity: 0.98;
+  /* Rich high-contrast forest ink */
+  color: #143d29;
+}
+
+.passport-stamp--green .passport-stamp__impression {
+  filter: contrast(1.15) saturate(1.2);
+}
+
+.passport-stamp--blue {
+  --stamp-opacity: 0.98;
+  /* Rich high-contrast navy ink */
+  color: #163654;
+}
+
+.passport-stamp--blue .passport-stamp__impression {
+  filter: contrast(1.15) saturate(1.2);
+}
+
+.passport-stamp--plum {
+  --stamp-opacity: 0.98;
+  /* Rich high-contrast deep plum ink */
+  color: #451d33;
+}
+
+.passport-stamp--plum .passport-stamp__impression {
+  filter: contrast(1.15) saturate(1.2);
+}
+
+.passport-stamp--triangle {
+  --stamp-opacity: 0.98;
+  --stamp-rotation: 3deg;
+  --stamp-impact-rotation: 4deg;
+}
+
+.passport-stamp--rectangular {
+  --stamp-opacity: 0.98;
+  --stamp-rotation: -2.5deg;
+  --stamp-impact-rotation: -3.5deg;
+}
+
+.passport-stamp--octagonal {
+  --stamp-opacity: 0.98;
+  --stamp-rotation: 6deg;
+  --stamp-impact-rotation: 7deg;
+}
+
+.passport-stamp__impression {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  opacity: var(--stamp-opacity);
+  filter: contrast(0.96) saturate(0.9);
+  transform: rotate(var(--stamp-rotation));
+  transform-origin: 50% 52%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .passport-stamp[data-pressed="true"] .passport-stamp__impression {
+    animation: passport-stamp-impact 440ms cubic-bezier(0.2, 0.7, 0.25, 1) both;
+  }
+}
+
+@keyframes passport-stamp-impact {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) rotate(var(--stamp-impact-rotation)) scale(1.08);
+  }
+  42% {
+    opacity: 0.95;
+    transform: translateY(1px) rotate(var(--stamp-rotation)) scale(0.985);
+  }
+  68% {
+    opacity: calc(var(--stamp-opacity) + 0.02);
+    transform: translateY(0) rotate(var(--stamp-rotation)) scale(1.005);
+  }
+  100% {
+    opacity: var(--stamp-opacity);
+    transform: translateY(0) rotate(var(--stamp-rotation)) scale(1);
+  }
+}

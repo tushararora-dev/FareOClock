@@ -8,7 +8,7 @@ import { places } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Photo credits",
   description:
-    "Attribution and licences for the landmark photographs used on Budget Banda.",
+    "Attribution and licences for the landmark photographs used on FareO'Clock.",
   alternates: { canonical: "/credits" },
 };
 
@@ -119,13 +119,34 @@ export default function CreditsPage() {
             endorse this site or its services.
           </p>
           <p className="mt-3">
-            Text, layout and code on this site are © {""}
-            Budget Banda. If you spot a credit that needs correcting, email{" "}
+            Country flags use{" "}
             <a
-              href="mailto:hello@budgetbanda.com"
+              href="https://github.com/jdecked/twemoji"
+              target="_blank"
+              rel="noreferrer noopener"
               className="text-ink underline-offset-4 hover:underline"
             >
-              hello@budgetbanda.com
+              Twemoji
+            </a>{" "}
+            artwork, licensed under{" "}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-ink underline-offset-4 hover:underline"
+            >
+              CC BY 4.0
+            </a>
+            .
+          </p>
+          <p className="mt-3">
+            Text, layout and code on this site are © {""}
+            FareO&apos;Clock. If you spot a credit that needs correcting, email{" "}
+            <a
+              href="mailto:tushar.ai.dev@gmail.com"
+              className="text-ink underline-offset-4 hover:underline"
+            >
+              tushar.ai.dev@gmail.com
             </a>
             .
           </p>

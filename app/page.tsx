@@ -1,16 +1,13 @@
-import { Ask } from "@/components/site/ask";
+import { Achievements } from "@/components/site/achievements";
 import { Contact } from "@/components/site/contact";
-import { Destinations } from "@/components/site/destinations";
-import { Faq } from "@/components/site/faq";
+import { FloatingInstagram } from "@/components/site/floating-instagram";
 import { Footer } from "@/components/site/footer";
 import { Hero } from "@/components/site/hero";
+import { MapBackdrop } from "@/components/site/map-backdrop";
 import { Nav } from "@/components/site/nav";
-import { Postcards } from "@/components/site/postcards";
-import { Pricing } from "@/components/site/pricing";
-import { ScrollPlane } from "@/components/site/scroll-plane";
+import { Plan } from "@/components/site/plan";
 import { Services } from "@/components/site/services";
-import { Testimonials } from "@/components/site/testimonials";
-import { Trips } from "@/components/site/trips";
+import { Tips } from "@/components/site/tips";
 import { site } from "@/lib/site";
 
 const structuredData = {
@@ -33,13 +30,13 @@ const structuredData = {
   makesOffer: [
     {
       "@type": "Offer",
-      price: "2499",
+      price: "99",
       priceCurrency: "INR",
       itemOffered: {
         "@type": "Service",
-        name: "Custom travel itinerary",
+        name: "Top 100 tips PDF",
         description:
-          "A day-by-day itinerary with a budget sheet, booking links, visa checklist and offline map list.",
+          "A hundred budget-travel tips across flights, stays, visas, food, safety and packing.",
       },
     },
     {
@@ -48,9 +45,9 @@ const structuredData = {
       priceCurrency: "INR",
       itemOffered: {
         "@type": "Service",
-        name: "1:1 travel session",
+        name: "Custom travel itinerary",
         description:
-          "A 60-minute call covering visas, credit points, volunteer travel and budget routing.",
+          "A day-by-day itinerary with a budget sheet, booking links and visa checklist.",
       },
     },
   ],
@@ -65,29 +62,31 @@ export default function Home() {
       />
 
       <a
-        href="#main"
+        href="#top"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-cream"
       >
         Skip to content
       </a>
 
       <Nav />
-      <ScrollPlane />
+      <FloatingInstagram />
 
-      <main id="main">
-        <Hero />
-        <Destinations />
-        <Trips />
-        <Postcards />
-        <Services />
-        <Ask />
-        <Testimonials />
-        <Pricing />
-        <Faq />
-        <Contact />
+      <main
+        id="main"
+        className="relative overflow-x-clip pt-12 sm:pt-14 lg:pt-[60px]"
+      >
+        <MapBackdrop />
+
+        <div className="pointer-events-none relative z-10">
+          <Hero />
+          <Achievements />
+          <Tips />
+          <Plan />
+          <Services />
+          <Contact />
+          <Footer />
+        </div>
       </main>
-
-      <Footer />
     </>
   );
 }

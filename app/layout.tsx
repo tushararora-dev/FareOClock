@@ -18,7 +18,7 @@ const instrumentSerif = Instrument_Serif({
   display: "swap",
 });
 
-const title = `${site.name} — Custom itineraries & 1:1 travel sessions`;
+const title = `${site.name} — Custom travel itineraries`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),

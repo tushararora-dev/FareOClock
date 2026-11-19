@@ -1,6 +1,6 @@
-# Budget Banda — "Kam kharch, zyada duniya."
+# FareO'Clock — "Kam kharch, zyada duniya."
 
-Single-page site for a budget-travel service: **custom itineraries** and **1:1 travel sessions**. Built to deploy on Vercel in one click.
+Single-page site for a budget-travel service: **custom itineraries**. Built to deploy on Vercel in one click.
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Motion · lucide-react · Resend
 
@@ -35,17 +35,17 @@ All editorial content lives in one file:
 | --- | --- |
 | Name, domain, email, tagline, mission, availability, socials | `lib/site.ts` → `site` |
 | Navigation links | `lib/site.ts` → `nav` |
-| Hero stats (turnaround, session fee, cheapest trip, mark-ups) | `lib/site.ts` → `stats` |
+| Hero stats (turnaround, itinerary fee, money moves, mark-ups) | `lib/site.ts` → `stats` |
 | Destination ticker | `lib/site.ts` → `destinations` |
-| Real trips + what they cost | `lib/site.ts` → `trips` |
+| Route steps drawn over the live map | `lib/site.ts` → `journey` |
 | Landmark photos + alt text | `lib/site.ts` → `places` |
+| Trip-tip cards | `lib/site.ts` → `tips` |
 | The four mission principles | `lib/site.ts` → `principles` |
 | The two services | `lib/site.ts` → `services` |
-| Questions answered on a 1:1 call | `lib/site.ts` → `questions` |
+| Questions the plan answers | `lib/site.ts` → `questions` |
 | Process steps | `lib/site.ts` → `process` |
 | Testimonials | `lib/site.ts` → `testimonials` |
 | Pricing tiers | `lib/site.ts` → `pricing` |
-| FAQ | `lib/site.ts` → `faqs` |
 | Form budget + service options | `lib/site.ts` → `budgets`, `enquiryServices` |
 | Colours / fonts / spacing tokens | `app/globals.css` → `@theme` |
 | Fonts | `app/layout.tsx` (Geist + Instrument Serif) |
@@ -58,7 +58,7 @@ Each section is its own component in `components/site/`, so you can reorder or r
 
 1. Replace `site.url` and `site.domain` with the real domain.
 2. Replace the three **testimonials** with real ones (they are placeholders).
-3. Confirm the trip prices and the "2 slots left" availability line are current.
+3. Confirm the "2 slots left" availability line is current.
 4. Point `site.socials` at the real Instagram and YouTube handles.
 
 ---
@@ -81,7 +81,7 @@ Each section is its own component in `components/site/`, so you can reorder or r
 - Light theme throughout, with exactly one dark section (`#ask`) using `bg-ink text-on-dark`.
 - Primary CTAs are ink-on-cream, not amber — the accent stays a highlight so it never cheapens the page.
 - Oversized headings with tight tracking; a handwritten-ish serif italic (`Instrument Serif`) carries the emotional lines.
-- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed live map in the hero (OpenStreetMap vector tiles, warm-tinted to the cream palette, coordinate readout and scale bar), the interactive trip tab board, the postcard filmstrip, and the boarding-pass pricing cards.
+- Signature devices: numbered section eyebrows (`01 ·`), the full-bleed live map in the hero (OpenStreetMap vector tiles, warm-tinted to the cream palette, coordinate readout and scale bar), the scroll-drawn route over the map (dotted track, activating callout cards), the hand-annotated trip-tip cards (tape, rotation, marker highlights), and the boarding-pass pricing cards.
 - Motion is subtle (12–18px rise, 650ms) and disabled for `prefers-reduced-motion`.
 - Content stays visible with JavaScript disabled (`<noscript>` fallback in `app/layout.tsx`).
 
@@ -91,15 +91,15 @@ Each section is its own component in `components/site/`, so you can reorder or r
 
 The hero background is a real, live map: [MapLibre GL JS](https://maplibre.org) with vector tiles from OpenStreetMap data.
 
-- **Providers:** MapTiler `streets-v2` vector tiles by default (`NEXT_PUBLIC_MAPTILER_KEY`), then Mapbox `streets-v12` (`NEXT_PUBLIC_MAPBOX_TOKEN`), then [OpenFreeMap](https://openfreemap.org)'s Positron style as a keyless fallback so the page never ships broken. MapTiler wins the default because its quieter cartography lets the cream palette lead; Mapbox is denser and punchier but has to be rendered as raster tiles because MapLibre v6 no longer reads `mapbox://` style URLs.
+- **Providers:** Mapbox `streets-v12` by default when `NEXT_PUBLIC_MAPBOX_TOKEN` is set, then MapTiler `streets-v2` vector tiles (`NEXT_PUBLIC_MAPTILER_KEY`), then [OpenFreeMap](https://openfreemap.org)'s Positron style as a keyless fallback so the page never ships broken. Mapbox has to be rendered as raster tiles because MapLibre v6 no longer reads `mapbox://` style URLs.
 - **Compare:** open `/?map=maptiler` and `/?map=mapbox` side by side. Attribution follows the active provider automatically.
 - Put the keys in `.env.local` for local work and in Vercel → Settings → Environment Variables for production. Restrict the keys to your domain in the Mapbox / MapTiler dashboards — public tokens are visible in the browser.
-- `components/site/map-backdrop.tsx` — creates the map once on the client, opens on Asia with India at roughly 70% of the width, and keeps it full-bleed at every breakpoint. Drag to pan, the `+` / `−` buttons or double-click to zoom, reset to return. Scroll wheel is left alone so the page still scrolls; on touch devices dragging is off so vertical swipes scroll the page, and the buttons still zoom.
-- **Pinned while scrolling:** a rAF-throttled scroll listener translates the map layer by the hero's scroll offset, so the map stays fixed in the viewport while the hero copy and stats travel over it. The hero's `overflow-hidden` clips the layer at the section edge, so it never leaks behind the sections below.
-- The basemap is desaturated and warmed with a CSS filter on the canvas, then fades in once the first style frame is ready; a cream wash over the left side keeps the hero copy readable.
+- `components/site/map-backdrop.tsx` — creates the map once on the client, opens on Asia with India at roughly 70% of the width, and keeps it full-bleed at every breakpoint. Drag to pan, the `+` / `−` buttons or double-click to zoom, right-click to zoom out, reset to return. The wheel scrolls the page; it never zooms or pans the map.
+- **Pinned behind every section:** the map is one `position: fixed` layer behind the whole page, so it stays in the viewport while the content scrolls over it. No cream wash at the top — the map shows straight through behind the hero and the top navbar; only a scroll-linked cream depth wash settles in deeper down the page so the copy stays readable.
+- The basemap is desaturated and warmed with a CSS filter on the canvas, then fades in once the first style frame is ready. The only softening layer over the map is a warm amber cursor glow (`map-light`) plus the scroll-linked depth wash.
 - A live latitude/longitude chip and a 120px scale bar are driven by the map (`move` / `resize`), and the keyboard can pan the map once the region has focus.
 - The MapLibre worker is served as a static file from `public/maplibre/maplibre-gl-worker.mjs` (copied from the package) and wired with `setWorkerUrl`, so Turbopack never tries to bundle it.
-- To change look, swap the style id (`streets-v12` → `light-v11`, or `streets-v2` → `basic-v2` / `winter-v2`).
+- To change look, swap the style id (`light-v11` → `streets-v12` / `outdoors-v12` / `satellite-streets-v12`, or `streets-v2` → `basic-v2` / `winter-v2` on MapTiler).
 
 ---
 
@@ -126,7 +126,7 @@ To go live:
    ```bash
    RESEND_API_KEY=re_xxxxxxxx
    CONTACT_TO_EMAIL=you@yourdomain.com
-   CONTACT_FROM_EMAIL="Budget Banda <hello@yourdomain.com>"
+   CONTACT_FROM_EMAIL="FareO'Clock <hello@yourdomain.com>"
    ```
 
 4. Add the same variables in **Vercel → Project → Settings → Environment Variables**.
@@ -166,7 +166,8 @@ app/
 components/
   reveal.tsx          scroll-reveal wrapper (Motion)
   section-heading.tsx shared eyebrow + heading
-  site/               one file per page section (map-backdrop = MapLibre hero map)
+  site/               one file per page section (map-backdrop = MapLibre hero map,
+                      route = scroll-drawn journey, tips = trip-tip cards)
 lib/
   site.ts             all copy and content
   place-credits.json  photo attribution data
@@ -178,4 +179,4 @@ scripts/
   resolve-places.cjs  re-fetch + normalise the photos
 ```
 
-Page order: Hero → destination ticker → Trips (interactive price board) → Postcards (filmstrip) → Services (+ process strip) → Ask (dark: mission + 1:1 questions) → Testimonials → Pricing (boarding passes) → FAQ → Contact.
+Page order: Hero → Trips we pulled off → A hundred tips → A Plan → Services → Contact. The page scrolls normally under a full-width top navbar; the nav highlights the section in view and Services is a plain link (no dropdown).

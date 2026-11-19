@@ -1,25 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
-import { Minus, Move, Plus, RotateCcw } from "lucide-react";
+import { useEffect, useRef } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { cn } from "@/lib/utils";
+import { clearMapController, setMapController } from "@/lib/map-controller";
+import {
+  DEFAULT_MAP_PROVIDER,
+  MAPBOX_TOKEN,
+  MAPTILER_KEY,
+  useMapProvider,
+  type MapProvider,
+} from "@/lib/map-provider";
 
-const FOCUS = { lat: 22, lon: 88 };
-/** Where the focus sits across the hero. */
-const FOCUS_X = 0.7;
+const FOCUS = { lat: 22.5, lon: 88 };
+/** Where the focus sits across the viewport. */
+const FOCUS_X = 0.69;
+/** Degrees of longitude visible: the wide Asia view picked in review. */
+const spanFor = (width: number) => (width >= 720 ? 104 : 62);
 
-/**
- * Two keyed basemaps for comparison, plus a keyless OpenFreeMap fallback so
- * the hero never ships broken. Pick one with `?map=mapbox|maptiler`; MapTiler
- * is the default when its key is set because its quieter vector cartography
- * lets the cream palette lead.
- */
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN?.trim();
-const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY?.trim();
+/** MapLibre renders the world 512px wide at zoom 0. */
+const WORLD_PX = 512;
 
-type Provider = "mapbox" | "maptiler" | "openfreemap";
+/** The default camera for a given viewport width. */
+const viewFor = (width: number) => {
+  const span = spanFor(width);
+  return {
+    center: [
+      FOCUS.lon - (FOCUS_X - 0.5) * span,
+      FOCUS.lat,
+    ] as [number, number],
+    zoom: Math.log2((width * 360) / span / WORLD_PX),
+  };
+};
+
 type ProviderStyle = string | import("maplibre-gl").StyleSpecification;
 
 /**
@@ -27,129 +39,60 @@ type ProviderStyle = string | import("maplibre-gl").StyleSpecification;
  * is a raster style pointed at Mapbox's own pre-rendered tiles. It is the
  * same cartography, just delivered as images.
  */
-const MAPBOX_STYLE: ProviderStyle | null = MAPBOX_TOKEN
-  ? {
-      version: 8,
-      sources: {
-        mapbox: {
-          type: "raster",
-          tileSize: 512,
-          tiles: [
-            `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`,
-          ],
-        },
-      },
-      layers: [{ id: "mapbox", type: "raster", source: "mapbox" }],
-    }
-  : null;
+const MAPBOX_STYLES = [
+  "light-v11",
+  "streets-v12",
+  "outdoors-v12",
+  "satellite-v9",
+  "satellite-streets-v12",
+  "dark-v11",
+  "navigation-day-v1",
+] as const;
+type MapboxStyle = (typeof MAPBOX_STYLES)[number];
+const DEFAULT_MAPBOX_STYLE: MapboxStyle = "streets-v12";
 
-const PROVIDERS: Record<Provider, ProviderStyle | null> = {
-  mapbox: MAPBOX_STYLE,
+const mapboxStyle = (style: MapboxStyle): ProviderStyle | null =>
+  MAPBOX_TOKEN
+    ? {
+        version: 8,
+        sources: {
+          mapbox: {
+            type: "raster",
+            tileSize: 512,
+            tiles: [
+              `https://api.mapbox.com/styles/v1/mapbox/${style}/tiles/512/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`,
+            ],
+          },
+        },
+        layers: [{ id: "mapbox", type: "raster", source: "mapbox" }],
+      }
+    : null;
+
+const PROVIDERS: Record<MapProvider, ProviderStyle | null> = {
+  mapbox: mapboxStyle(DEFAULT_MAPBOX_STYLE),
   maptiler: MAPTILER_KEY
     ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
     : null,
   openfreemap: "https://tiles.openfreemap.org/styles/positron",
 };
 
-const DEFAULT_PROVIDER: Provider = MAPTILER_KEY
-  ? "maptiler"
-  : MAPBOX_TOKEN
-    ? "mapbox"
-    : "openfreemap";
-
-const CREDITS: Record<Provider, { label: string; href: string }[]> = {
-  mapbox: [
-    { label: "Mapbox", href: "https://www.mapbox.com/about/maps/" },
-    {
-      label: "OpenStreetMap",
-      href: "https://www.openstreetmap.org/copyright",
-    },
-  ],
-  maptiler: [
-    { label: "MapTiler", href: "https://www.maptiler.com/copyright/" },
-    {
-      label: "OpenStreetMap",
-      href: "https://www.openstreetmap.org/copyright",
-    },
-  ],
-  openfreemap: [
-    { label: "OpenMapTiles", href: "https://www.openmaptiles.org/" },
-    {
-      label: "OpenStreetMap",
-      href: "https://www.openstreetmap.org/copyright",
-    },
-    { label: "OpenFreeMap", href: "https://openfreemap.org" },
-  ],
-};
-
-let requestedProvider: Provider | null = null;
-let requestedResolved = false;
-
-const subscribe = () => () => {};
-const getServerProvider = () => DEFAULT_PROVIDER;
-const getClientProvider = () => {
-  if (!requestedResolved) {
-    requestedResolved = true;
-    const picked = new URLSearchParams(window.location.search).get("map");
-    if (picked && Object.keys(PROVIDERS).includes(picked)) {
-      const provider = picked as Provider;
-      if (PROVIDERS[provider]) requestedProvider = provider;
-    }
-  }
-  return requestedProvider ?? DEFAULT_PROVIDER;
-};
-
-/** Degrees of longitude visible at the current breakpoint. */
-const spanFor = (width: number) => (width >= 720 ? 74 : 44);
-
-/** MapLibre renders the world 512px wide at zoom 0. */
-const WORLD_PX = 512;
-/** Equator metres per pixel at zoom 0 for a 512px world. */
-const EQUATOR_M_PER_PX = 78271.51696;
-
-const formatLat = (value: number) =>
-  `${Math.abs(value).toFixed(1)}°${value >= 0 ? "N" : "S"}`;
-const formatLon = (value: number) =>
-  `${Math.abs(value).toFixed(1)}°${value >= 0 ? "E" : "W"}`;
-
 export function MapBackdrop() {
-  const provider = useSyncExternalStore(
-    subscribe,
-    getClientProvider,
-    getServerProvider,
-  );
+  const provider = useMapProvider();
   const rootRef = useRef<HTMLDivElement>(null);
   const mapElRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<import("maplibre-gl").Map | null>(null);
-  const fitRef = useRef<() => void>(() => {});
-
-  const [hinted, setHinted] = useState(false);
-  const touchedRef = useRef(false);
+  const scrollWrapRef = useRef<HTMLDivElement>(null);
+  const driftWrapRef = useRef<HTMLDivElement>(null);
+  const draggingRef = useRef(false);
+  const driftTarget = useRef({ x: 0, y: 0 });
+  const depthVeilRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let disposed = false;
     let map: import("maplibre-gl").Map | null = null;
     let observer: ResizeObserver | null = null;
+    let cleanupGlobalGestures = () => {};
 
     const finePointer = window.matchMedia("(pointer: fine)").matches;
-
-    const sync = () => {
-      const root = rootRef.current;
-      if (!root || !map) return;
-      const chip = root.querySelector<HTMLElement>("[data-readout]");
-      const bar = root.querySelector<HTMLElement>("[data-scale-label]");
-      const center = map.getCenter();
-      if (chip) {
-        chip.textContent = `${formatLat(center.lat)} · ${formatLon(center.lng)}`;
-      }
-      if (bar) {
-        const metresPerPixel =
-          (EQUATOR_M_PER_PX * Math.cos((center.lat * Math.PI) / 180)) /
-          Math.pow(2, map.getZoom());
-        const km = (metresPerPixel * 120) / 1000;
-        bar.textContent = `${Math.max(1, Math.round(km / 10) * 10)} km`;
-      }
-    };
 
     (async () => {
       const maplibre = await import("maplibre-gl");
@@ -158,11 +101,25 @@ export function MapBackdrop() {
       // The worker ships as a static file so Turbopack never rewrites it.
       maplibre.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
+      // `?style=` previews Mapbox styles without touching the default
+      // (only affects the Mapbox provider).
+      const picked = new URLSearchParams(window.location.search).get("style");
+      const style =
+        provider === "mapbox" && picked
+          ? (mapboxStyle(
+              (MAPBOX_STYLES as readonly string[]).includes(picked)
+                ? (picked as MapboxStyle)
+                : DEFAULT_MAPBOX_STYLE,
+            ) ?? PROVIDERS.openfreemap!)
+          : (PROVIDERS[provider] ?? PROVIDERS.openfreemap!);
+
+      const startView = viewFor(rootRef.current?.clientWidth || window.innerWidth);
+
       const instance = new maplibre.Map({
         container: mapElRef.current,
-        style: PROVIDERS[provider] ?? PROVIDERS.openfreemap!,
-        center: [FOCUS.lon, FOCUS.lat],
-        zoom: 4,
+        style,
+        center: startView.center,
+        zoom: startView.zoom,
         attributionControl: false,
         dragRotate: false,
         pitchWithRotate: false,
@@ -177,13 +134,168 @@ export function MapBackdrop() {
         validateStyle: false,
       });
       map = instance;
-      mapRef.current = instance;
 
+      // Wheel gestures belong to the page, so the map must never react to
+      // them; scrolling over the map still moves the document.
       instance.scrollZoom.disable();
       instance.boxZoom.disable();
-      instance.doubleClickZoom.enable();
       instance.keyboard.enable();
-      if (!finePointer) {
+      instance.touchZoomRotate.disable();
+
+      // Unified Page-Wide Map Drag & Zoom Gestures
+      // Works across the overall page, but ignores interactive buttons, cards with hover animations, and text fields
+      if (finePointer) {
+        instance.dragPan.disable();
+        instance.doubleClickZoom.disable();
+
+        const zoomBy = (delta: number) => {
+          const targetZoom = Math.min(
+            instance.getMaxZoom(),
+            Math.max(instance.getMinZoom(), instance.getZoom() + delta),
+          );
+          instance.easeTo({
+            zoom: targetZoom,
+            duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? 0
+              : 220,
+          });
+        };
+
+        const isInteractive = (target: EventTarget | null): boolean => {
+          if (!target || !(target instanceof Element)) return false;
+
+          // 1. Explicit interactive elements, buttons, links, inputs, cards
+          const el = target.closest(
+            'button, a, input, textarea, select, label, option, form, ' +
+            '[role="button"], [role="link"], [role="tab"], [role="menuitem"], [role="dialog"], [role="combobox"], ' +
+            'article, aside, nav, header, footer, ' +
+            '.page-breeze-wrap, .tape, [data-interactive]',
+          );
+          if (el) return true;
+
+          // 2. Computed cursor: pointer (interactive/clickable) or text (inputs)
+          try {
+            let curr: Element | null = target;
+            let depth = 0;
+            while (curr && depth < 4) {
+              const cursor = window.getComputedStyle(curr).cursor;
+              if (cursor === "pointer" || cursor === "text") {
+                return true;
+              }
+              curr = curr.parentElement;
+              depth++;
+            }
+          } catch {}
+
+          return false;
+        };
+
+        let isDown = false;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let lastX = 0;
+        let lastY = 0;
+        let startTime = 0;
+
+        const onMouseDown = (e: MouseEvent) => {
+          if (e.button !== 0) return; // Only primary (left) button
+          if (isInteractive(e.target)) return;
+
+          isDown = true;
+          isDragging = false;
+          startX = e.clientX;
+          startY = e.clientY;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          startTime = Date.now();
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+          if (!isDragging) {
+            if (!isInteractive(e.target)) {
+              document.body.style.cursor = isDown ? "grabbing" : "grab";
+            } else {
+              document.body.style.cursor = "";
+            }
+          }
+
+          if (!isDown) return;
+
+          const dx = e.clientX - lastX;
+          const dy = e.clientY - lastY;
+          const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+
+          if (!isDragging && dist > 4) {
+            isDragging = true;
+            draggingRef.current = true;
+            document.body.style.cursor = "grabbing";
+          }
+
+          if (isDragging) {
+            e.preventDefault();
+            lastX = e.clientX;
+            lastY = e.clientY;
+            instance.panBy([-dx, -dy], { animate: false });
+          }
+        };
+
+        const onMouseUp = (e: MouseEvent) => {
+          if (!isDown || e.button !== 0) return;
+          isDown = false;
+          document.body.style.cursor = "";
+
+          if (isDragging) {
+            isDragging = false;
+            setTimeout(() => {
+              draggingRef.current = false;
+            }, 50);
+          } else {
+            // Clean left click without dragging: zoom in!
+            const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+            const duration = Date.now() - startTime;
+            if (dist <= 4 && duration < 350) {
+              zoomBy(0.85);
+            }
+          }
+        };
+
+        const onContextMenu = (e: MouseEvent) => {
+          if (isInteractive(e.target)) return;
+          e.preventDefault();
+          zoomBy(-0.85);
+        };
+
+        const onDblClick = (e: MouseEvent) => {
+          if (isInteractive(e.target)) return;
+          e.preventDefault();
+          zoomBy(1.2);
+        };
+
+        const onBlur = () => {
+          isDown = false;
+          isDragging = false;
+          draggingRef.current = false;
+          document.body.style.cursor = "";
+        };
+
+        window.addEventListener("mousedown", onMouseDown, { passive: false });
+        window.addEventListener("mousemove", onMouseMove, { passive: false });
+        window.addEventListener("mouseup", onMouseUp, { passive: false });
+        window.addEventListener("contextmenu", onContextMenu, { passive: false });
+        window.addEventListener("dblclick", onDblClick, { passive: false });
+        window.addEventListener("blur", onBlur);
+
+        cleanupGlobalGestures = () => {
+          window.removeEventListener("mousedown", onMouseDown);
+          window.removeEventListener("mousemove", onMouseMove);
+          window.removeEventListener("mouseup", onMouseUp);
+          window.removeEventListener("contextmenu", onContextMenu);
+          window.removeEventListener("dblclick", onDblClick);
+          window.removeEventListener("blur", onBlur);
+          document.body.style.cursor = "";
+        };
+      } else {
         instance.dragPan.disable();
         instance.touchZoomRotate.disable();
       }
@@ -191,41 +303,29 @@ export function MapBackdrop() {
       const fit = () => {
         const root = rootRef.current;
         if (!root) return;
-        const span = spanFor(root.clientWidth || 1);
-        // Show `span` degrees across the hero, with India at FOCUS_X.
-        const zoom = Math.log2((root.clientWidth * 360) / span / WORLD_PX);
-        const lon = FOCUS.lon - (FOCUS_X - 0.5) * span;
-        instance.jumpTo({ center: [lon, FOCUS.lat], zoom });
-        sync();
+        instance.jumpTo(viewFor(root.clientWidth || 1));
       };
-      fitRef.current = fit;
       fit();
 
-      instance.on("move", sync);
-      instance.on("resize", sync);
-      instance.on("dragstart", () => {
-        touchedRef.current = true;
-        setHinted(true);
-      });
+      setMapController(instance, fit);
+
       instance.once("load", () => {
         const root = rootRef.current;
         if (root) root.dataset.mapReady = "true";
         // Re-frame once the style and the final layout are in place.
-        if (!touchedRef.current) fit();
-        sync();
+        fit();
       });
 
       instance
         .getContainer()
         .setAttribute(
           "aria-label",
-          "Map of Asia. Drag to pan, use the plus and minus buttons to zoom.",
+          "Map of Asia. Drag to pan, double-click to zoom, right-click to zoom out.",
         );
 
       observer = new ResizeObserver(() => {
         instance.resize();
-        if (touchedRef.current) sync();
-        else fit();
+        fit();
       });
       if (rootRef.current) observer.observe(rootRef.current);
     })();
@@ -233,31 +333,31 @@ export function MapBackdrop() {
     return () => {
       disposed = true;
       observer?.disconnect();
+      cleanupGlobalGestures();
+      if (map) clearMapController(map);
       map?.remove();
-      mapRef.current = null;
     };
   }, [provider]);
 
   /**
-   * Keep the map pinned to the viewport while the hero scrolls past. The
-   * hero's `overflow-hidden` clips it at the section edge, so it never
-   * leaks behind the cream sections below.
+   * A soft cream depth wash settles in as the page scrolls so the copy
+   * stays readable while the map remains in view. At the top there is no
+   * wash — the map shows straight through behind the hero and navbar.
    */
   useEffect(() => {
-    const root = rootRef.current;
-    const hero = root?.parentElement;
-    if (!root || !hero) return;
+    const depthVeil = depthVeilRef.current;
+    if (!depthVeil) return;
 
     let frame = 0;
     const apply = () => {
       frame = 0;
-      const offset = Math.min(
-        Math.max(0, window.scrollY - hero.offsetTop),
-        hero.offsetHeight,
-      );
-      root.style.transform = offset
-        ? `translate3d(0, ${offset}px, 0)`
-        : "";
+      const y = window.scrollY;
+      const viewport = Math.max(1, window.innerHeight);
+
+      const depth = Math.min(1, Math.max(0, y / (viewport * 2.2)));
+      // Narrow screens have full-width copy, so they need a heavier wash.
+      const maxWash = window.innerWidth < 640 ? 0.6 : 0.42;
+      depthVeil.style.opacity = (depth * maxWash).toFixed(3);
     };
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(apply);
@@ -271,166 +371,153 @@ export function MapBackdrop() {
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
-      root.style.transform = "";
+      depthVeil.style.opacity = "";
     };
   }, []);
 
-  function zoom(factor: number) {
-    const map = mapRef.current;
-    if (!map) return;
-    map.easeTo({
-      zoom: map.getZoom() + factor,
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 0
-        : 220,
-    });
-  }
+  /**
+   * Scroll parallax: the map rides up a little slower than the page, so it
+   * feels deeper than the content instead of a flat picture behind it.
+   */
+  useEffect(() => {
+    const wrap = scrollWrapRef.current;
+    if (!wrap) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    const MAX_SHIFT = 120;
+    let frame = 0;
+    const apply = () => {
+      frame = 0;
+      const doc = document.documentElement;
+      const max = Math.max(1, doc.scrollHeight - window.innerHeight);
+      const p = Math.min(1, Math.max(0, window.scrollY / max));
+      wrap.style.transform = `translate3d(0, ${(-p * MAX_SHIFT).toFixed(2)}px, 0)`;
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
+
+    apply();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      wrap.style.transform = "";
+    };
+  }, []);
+
+  /**
+   * Cursor drift: the map leans a few pixels toward the cursor so visitors
+   * can tell it's draggable without any hint. Eases back to rest when the
+   * cursor leaves, and stays still while the user drags. Touch and
+   * reduced-motion users get a static map.
+   */
+  useEffect(() => {
+    const wrap = driftWrapRef.current;
+    if (!wrap) return;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (!finePointer || reducedMotion) return;
+
+    const MAX = 18;
+    const current = { x: 0, y: 0 };
+    let frame = 0;
+
+    const step = () => {
+      frame = 0;
+      const target = driftTarget.current;
+      current.x += (target.x - current.x) * 0.22;
+      current.y += (target.y - current.y) * 0.22;
+      wrap.style.transform = `translate3d(${current.x.toFixed(2)}px, ${current.y.toFixed(2)}px, 0)`;
+      const dx = Math.abs(target.x - current.x);
+      const dy = Math.abs(target.y - current.y);
+      if (
+        dx > 0.05 ||
+        dy > 0.05 ||
+        Math.abs(current.x) > 0.05 ||
+        Math.abs(current.y) > 0.05
+      ) {
+        frame = window.requestAnimationFrame(step);
+      }
+    };
+    const kick = () => {
+      if (!frame) frame = window.requestAnimationFrame(step);
+    };
+
+    const onMove = (event: MouseEvent) => {
+      if (draggingRef.current) {
+        driftTarget.current = { x: 0, y: 0 };
+        kick();
+        return;
+      }
+      driftTarget.current = {
+        x: (event.clientX / window.innerWidth - 0.5) * 2 * MAX,
+        y: (event.clientY / window.innerHeight - 0.5) * 2 * MAX,
+      };
+      kick();
+    };
+    const reset = () => {
+      driftTarget.current = { x: 0, y: 0 };
+      kick();
+    };
+
+    window.addEventListener("mousemove", onMove, { passive: true });
+    document.addEventListener("mouseleave", reset);
+    window.addEventListener("blur", reset);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseleave", reset);
+      window.removeEventListener("blur", reset);
+      wrap.style.transform = "";
+    };
+  }, []);
 
   return (
     <div
       ref={rootRef}
-      className="hero-map absolute inset-0 z-0 overflow-hidden bg-[#dbe7e0]"
+      data-map-provider={provider ?? DEFAULT_MAP_PROVIDER}
+      className="site-map fixed inset-0 z-0 overflow-hidden bg-[#dbe7e0]"
     >
       <div
-        ref={mapElRef}
-        className="absolute inset-0 h-full w-full"
-        role="region"
-        aria-label="Map of Asia"
-        tabIndex={0}
-      />
+        ref={scrollWrapRef}
+        className="absolute -inset-32 will-change-transform"
+      >
+        <div
+          ref={driftWrapRef}
+          className="absolute -inset-6 will-change-transform"
+        >
+          <div
+            ref={mapElRef}
+            className="h-full w-full"
+            role="region"
+            aria-label="Map of Asia"
+            tabIndex={0}
+          />
+        </div>
+      </div>
 
       <div
         aria-hidden
         className="map-light pointer-events-none absolute inset-0"
       />
 
+      {/* depth wash: keeps the copy readable while the map stays in view */}
       <div
+        ref={depthVeilRef}
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(100deg,var(--color-cream)_0%,rgba(250,246,238,0.97)_26%,rgba(250,246,238,0.86)_40%,rgba(250,246,238,0.46)_55%,rgba(250,246,238,0.05)_72%)]"
+        className="pointer-events-none absolute inset-0 bg-cream opacity-0"
       />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-cream to-transparent"
-      />
-
-      {/* floating photos */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-[6%] top-[24%] hidden md:block"
-      >
-        {[
-          { slug: "thailand", className: "rotate-[-6deg] float-slow" },
-          { slug: "vietnam", className: "-mt-10 ml-16 rotate-[7deg] float-slower" },
-        ].map(({ slug, className }) => (
-          <span
-            key={slug}
-            className={cn(
-              "relative block h-32 w-24 overflow-hidden rounded-md border-2 border-cream bg-cream shadow-[0_24px_50px_-30px_rgba(20,32,27,0.75)] xl:h-40 xl:w-32",
-              className,
-            )}
-          >
-            <Image
-              src={`/places/${slug}.jpg`}
-              alt=""
-              fill
-              sizes="160px"
-              loading="eager"
-              className="object-cover"
-            />
-          </span>
-        ))}
-      </div>
-
-      {/* cartography chips */}
-      <div className="pointer-events-none absolute bottom-5 left-[max(1.25rem,calc((100vw-76rem)/2+1.25rem))] z-20 hidden items-end gap-3 sm:flex">
-        <span className="hidden flex-col gap-1 rounded-full border border-line bg-cream/85 px-3 py-1.5 backdrop-blur md:flex">
-          <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-muted">
-            <span data-readout className="num text-ink">
-              22.0°N · 88.0°E
-            </span>
-          </span>
-        </span>
-
-        <span className="hidden items-center gap-2 pb-0.5 lg:flex" aria-hidden>
-          <span className="relative block h-1.5 w-[120px] rounded-full bg-ink/20">
-            <span className="absolute inset-y-0 left-0 w-px bg-ink/40" />
-            <span className="absolute inset-y-0 right-0 w-px bg-ink/40" />
-            <span className="absolute inset-y-0 left-1/2 w-px bg-ink/30" />
-          </span>
-          <span data-scale-label className="num text-[10px] text-muted">
-            400 km
-          </span>
-        </span>
-      </div>
-
-      {/* controls + required map attribution */}
-      <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-2 sm:right-8">
-        <span
-          aria-hidden
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-line bg-cream/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted backdrop-blur transition-opacity duration-300",
-            hinted ? "hidden" : "hidden pointer-fine:inline-flex",
-          )}
-        >
-          <Move className="size-3" strokeWidth={2.2} />
-          Drag the map
-        </span>
-
-        <div className="flex overflow-hidden rounded-full border border-line bg-cream/90 shadow-[0_10px_30px_-22px_rgba(20,32,27,0.8)] backdrop-blur">
-          <MapButton label="Zoom in" onClick={() => zoom(0.75)}>
-            <Plus className="size-3.5" strokeWidth={2.4} />
-          </MapButton>
-          <MapButton label="Zoom out" onClick={() => zoom(-0.75)}>
-            <Minus className="size-3.5" strokeWidth={2.4} />
-          </MapButton>
-          <MapButton label="Reset the map" onClick={() => fitRef.current()} last>
-            <RotateCcw className="size-3" strokeWidth={2.4} />
-          </MapButton>
-        </div>
-
-        <span className="rounded-full bg-cream/80 px-2 py-0.5 text-[9px] leading-relaxed text-muted backdrop-blur">
-          ©{" "}
-          {CREDITS[provider].map((credit, index) => (
-            <span key={credit.href}>
-              {index > 0 && " · "}
-              <a
-                href={credit.href}
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-line-strong underline-offset-2 hover:text-ink"
-              >
-                {credit.label}
-              </a>
-            </span>
-          ))}
-        </span>
-      </div>
     </div>
-  );
-}
-
-function MapButton({
-  label,
-  onClick,
-  children,
-  last = false,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-  last?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className={cn(
-        "grid size-8 place-items-center text-ink transition-colors hover:bg-cream",
-        !last && "border-r border-line",
-      )}
-    >
-      {children}
-    </button>
   );
 }
