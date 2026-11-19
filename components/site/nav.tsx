@@ -265,12 +265,12 @@ export function Nav() {
         className={cn(
           "pointer-events-auto overflow-hidden border-b bg-cream/95 shadow-[0_26px_60px_-34px_rgba(20,32,27,0.5)] backdrop-blur-xl transition-[max-height,opacity] duration-300 lg:hidden",
           open
-            ? "max-h-[calc(100dvh-3rem)] border-line/80 opacity-100 sm:max-h-[calc(100dvh-3.5rem)]"
+            ? "max-h-[calc(100svh-3rem)] border-line/80 opacity-100 sm:max-h-[calc(100svh-3.5rem)]"
             : "max-h-0 border-transparent opacity-0",
         )}
       >
         <nav
-          className="no-scrollbar mx-auto max-h-[calc(100dvh-5rem)] max-w-[1600px] overflow-y-auto px-4 py-4 sm:max-h-[calc(100dvh-5.5rem)] sm:px-6"
+          className="no-scrollbar mx-auto max-h-[calc(100svh-5rem)] max-w-[1600px] overflow-y-auto px-4 py-4 sm:max-h-[calc(100svh-5.5rem)] sm:px-6"
           aria-label="Mobile"
         >
           <p className="px-1 pb-2 pt-1 text-[9px] font-medium uppercase tracking-[0.2em] text-muted">

@@ -10,7 +10,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="pointer-events-none relative isolate min-h-[calc(100dvh-3rem)] overflow-hidden pb-6 pt-9 sm:min-h-[calc(100dvh-3.5rem)] sm:pb-8 sm:pt-11 lg:min-h-[calc(100dvh-3.75rem)] lg:pb-10 lg:pt-13"
+      className="pointer-events-none relative isolate min-h-[calc(100svh-3rem)] overflow-hidden pb-6 pt-9 sm:min-h-[calc(100svh-3.5rem)] sm:pb-8 sm:pt-11 lg:min-h-[calc(100vh-3.75rem)] lg:pb-10 lg:pt-13"
     >
       <MapHud controller={useMapController()} />
 

@@ -323,9 +323,21 @@ export function MapBackdrop() {
           "Map of Asia. Drag to pan, double-click to zoom, right-click to zoom out.",
         );
 
-      observer = new ResizeObserver(() => {
-        instance.resize();
-        fit();
+      let lastWidth = rootRef.current?.clientWidth || 0;
+      observer = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        const newWidth = entry
+          ? Math.round(entry.contentRect.width)
+          : rootRef.current?.clientWidth || 0;
+
+        // Only trigger refit if horizontal WIDTH actually changes (orientation change or desktop resize).
+        // On mobile, height changes continuously as the browser URL bar collapses/expands during scroll.
+        // Calling fit() or resize() on height changes causes the map to jump/reset while scrolling.
+        if (newWidth > 0 && Math.abs(newWidth - lastWidth) > 2) {
+          lastWidth = newWidth;
+          instance.resize();
+          fit();
+        }
       });
       if (rootRef.current) observer.observe(rootRef.current);
     })();
