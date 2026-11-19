@@ -70,7 +70,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "pointer-events-auto relative max-w-[34.5rem] lg:max-w-[36.5rem] page-breeze rotate-[-1.25deg]",
+        "pointer-events-auto relative max-w-[34.5rem] lg:max-w-[36.5rem] page-breeze rotate-[-0.75deg] sm:rotate-[-1.25deg] ml-1 sm:ml-0",
         className,
       )}
       aria-label="Travel Document: See the whole world"
@@ -78,13 +78,13 @@ export function HeroPassportPage({ className }: { className?: string }) {
       {/* 3D Notebook Wire Spirals (6 Realistic, Large Circular Metallic Binder Rings) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 -left-4 z-30 flex flex-col justify-between py-7 sm:-left-4.5 sm:py-9"
+        className="pointer-events-none absolute inset-y-0 -left-3 z-30 flex flex-col justify-between py-7 sm:-left-4.5 sm:py-9"
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="relative flex items-center">
             <svg
               viewBox="0 0 52 38"
-              className="h-8 w-12 overflow-visible filter drop-shadow-[0_4px_5px_rgba(0,0,0,0.32)] sm:h-9 sm:w-13"
+              className="h-7 w-11 overflow-visible filter drop-shadow-[0_3px_4px_rgba(0,0,0,0.28)] sm:h-9 sm:w-13 sm:drop-shadow-[0_4px_5px_rgba(0,0,0,0.32)]"
             >
               <defs>
                 <linearGradient
@@ -173,7 +173,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
       </div>
 
       {/* Main Notebook Paper Document Card (Translucent parchment like Section 01 Trips) */}
-      <div className="relative overflow-hidden rounded-3xl border border-line-strong/80 bg-[radial-gradient(ellipse_at_18%_30%,rgba(255,255,255,0.42),transparent_38%),radial-gradient(ellipse_at_82%_70%,rgba(219,205,166,0.22),transparent_42%),linear-gradient(180deg,rgba(251,246,230,0.84),rgba(243,232,204,0.85))] text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.58),inset_0_-18px_40px_-36px_rgba(91,72,37,0.35),0_24px_60px_-25px_rgba(20,32,27,0.45)] backdrop-blur-[6px] transition-all">
+      <div className="relative overflow-hidden rounded-3xl border border-[#d2be9b] bg-[radial-gradient(ellipse_at_20%_30%,rgba(255,255,255,0.65),transparent_42%),radial-gradient(ellipse_at_80%_70%,rgba(235,206,145,0.45),transparent_48%),linear-gradient(180deg,rgba(254,249,236,0.96),rgba(247,233,196,0.96))] text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_16px_36px_-18px_rgba(20,32,27,0.28)] backdrop-blur-[6px] transition-all">
         {/* Background Guilloche Security Pattern & Paper Grain (Sprinkles) */}
         <svg
           className="pointer-events-none absolute inset-0 size-full"
@@ -390,7 +390,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
         </div>
 
         {/* Machine Readable Zone (MRZ) across bottom - Single compact line */}
-        <div className="relative border-t border-dashed border-ink/20 bg-cream/60 py-2 pr-4 pl-10 font-mono text-[9px] uppercase tracking-[0.16em] text-ink/55 select-none backdrop-blur-xs sm:pr-6 sm:pl-12 sm:text-[10px]">
+        <div className="relative border-t border-ink/10 bg-cream/60 py-2 pr-4 pl-10 font-mono text-[9px] uppercase tracking-[0.16em] text-ink/55 select-none backdrop-blur-xs sm:pr-6 sm:pl-12 sm:text-[10px]">
           <div className="truncate">
             P&lt;INDFARE&lt;&lt;OCLOCK&lt;&lt;099&lt;&lt;499&lt;&lt;999&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
           </div>

@@ -86,37 +86,71 @@ export function Nav() {
 
   // The little plane rides the dashed rail under the navbar as the page
   // scrolls: parked on the left at the top, all the way right at the end.
+  // Uses fluid RAF interpolation (lerp) so movement is ultra-smooth on mobile touch.
   useEffect(() => {
     const plane = planeRef.current;
     const track = planeTrackRef.current;
+    const trail = planeTrailRef.current;
     if (!plane || !track) return;
 
+    let targetX = 0;
+    let currentX = 0;
     let frame = 0;
-    const update = () => {
-      frame = 0;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const progress =
-        max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-      // The marker is centred on the rail, so its travel is the rail width.
-      const currentX = progress * track.clientWidth;
-      plane.style.transform = `translate3d(${currentX}px, 0, 0)`;
-      if (planeTrailRef.current) {
-        planeTrailRef.current.style.width = `${currentX + 10}px`;
-      }
-    };
-    const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
+    let trackWidth = track.clientWidth || 300;
+    let maxScroll = Math.max(
+      1,
+      document.documentElement.scrollHeight - window.innerHeight,
+    );
+
+    const measure = () => {
+      trackWidth = track.clientWidth || 300;
+      maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
     };
 
+    const step = () => {
+      frame = 0;
+      currentX += (targetX - currentX) * 0.22;
+
+      plane.style.transform = `translate3d(${currentX.toFixed(2)}px, 0, 0)`;
+      if (trail && trackWidth > 0) {
+        const progress = Math.min(
+          1,
+          Math.max(0, (currentX + 8) / trackWidth),
+        );
+        trail.style.transform = `scaleX(${progress.toFixed(4)})`;
+      }
+
+      if (Math.abs(targetX - currentX) > 0.15) {
+        frame = window.requestAnimationFrame(step);
+      }
+    };
+
+    const update = () => {
+      const scrollY = window.scrollY;
+      const progress =
+        maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
+      targetX = progress * trackWidth;
+      if (!frame) frame = window.requestAnimationFrame(step);
+    };
+
+    measure();
     update();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-    const observer = new ResizeObserver(schedule);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", () => {
+      measure();
+      update();
+    }, { passive: true });
+    const observer = new ResizeObserver(() => {
+      measure();
+      update();
+    });
     observer.observe(document.body);
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
       observer.disconnect();
     };
   }, []);
@@ -226,8 +260,8 @@ export function Nav() {
           {/* Active flight trail filled behind the plane */}
           <div
             ref={planeTrailRef}
-            className="absolute left-0 bottom-0 h-[2px] bg-gradient-to-r from-brand/20 via-brand/60 to-brand"
-            style={{ width: 0 }}
+            className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-gradient-to-r from-brand/20 via-brand/60 to-brand will-change-transform"
+            style={{ transform: "scaleX(0)" }}
           />
 
           {/* Flight track & plane */}

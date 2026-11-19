@@ -376,8 +376,9 @@ export function MapBackdrop() {
   }, []);
 
   /**
-   * Scroll parallax: the map rides up a little slower than the page, so it
-   * feels deeper than the content instead of a flat picture behind it.
+   * Scroll parallax: on desktop (>= 768px) with fine pointer, the map shifts slightly.
+   * On mobile (< 768px), translating the WebGL canvas on scroll causes mobile GPUs
+   * to drop frames and lag. We keep the canvas stationary on mobile so scrolling is 100% smooth.
    */
   useEffect(() => {
     const wrap = scrollWrapRef.current;
@@ -392,6 +393,10 @@ export function MapBackdrop() {
     let frame = 0;
     const apply = () => {
       frame = 0;
+      if (window.innerWidth < 768) {
+        wrap.style.transform = "none";
+        return;
+      }
       const doc = document.documentElement;
       const max = Math.max(1, doc.scrollHeight - window.innerHeight);
       const p = Math.min(1, Math.max(0, window.scrollY / max));

@@ -136,8 +136,8 @@ export function MapHud({
         <span
           aria-hidden
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-line bg-cream/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted backdrop-blur transition-opacity duration-300",
-            hinted ? "hidden" : "hidden pointer-fine:inline-flex",
+            "hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-cream/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-muted backdrop-blur transition-opacity duration-300",
+            hinted ? "sm:hidden" : "sm:pointer-fine:inline-flex",
           )}
         >
           <Move className="size-3" strokeWidth={2.2} />
