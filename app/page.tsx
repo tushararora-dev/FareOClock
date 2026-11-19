@@ -73,7 +73,7 @@ export default function Home() {
 
       <main
         id="main"
-        className="relative overflow-x-clip pt-12 sm:pt-14 lg:pt-[60px]"
+        className="relative overflow-x-hidden pt-12 sm:pt-14 lg:pt-[60px]"
       >
         <MapBackdrop />
 

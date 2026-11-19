@@ -49,18 +49,18 @@ export function HeroPassportPage({ className }: { className?: string }) {
           href={spec.href}
           title={spec.ariaLabel}
           aria-label={spec.ariaLabel}
-          className="group relative flex flex-col justify-between rounded-lg border border-ink/15 bg-cream/75 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xs transition-all duration-200 hover:-translate-y-1 hover:border-brand hover:bg-cream hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand sm:p-2.5 cursor-pointer"
+          className="group relative flex min-w-0 flex-col justify-between rounded-lg border border-ink/15 bg-cream/75 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xs transition-all duration-200 hover:-translate-y-1 hover:border-brand hover:bg-cream hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand sm:p-2.5 cursor-pointer"
         >
-          <span className="font-mono text-[8px] font-bold tracking-wider text-muted group-hover:text-brand sm:text-[9px]">
+          <span className="truncate font-mono text-[7.5px] font-bold tracking-wider text-muted group-hover:text-brand sm:text-[9px]">
             {spec.code}
           </span>
-          <div className="my-0.5 flex items-baseline justify-between">
-            <span className="block font-mono text-sm sm:text-base font-bold tracking-tight text-ink group-hover:text-brand lg:text-lg">
+          <div className="my-0.5 flex items-baseline justify-between gap-1">
+            <span className="block font-mono text-xs font-bold tracking-tight text-ink group-hover:text-brand sm:text-base lg:text-lg">
               {formattedValue}
             </span>
-            <ArrowUpRight className="size-3 text-muted/60 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-brand group-hover:translate-x-0.5" />
+            <ArrowUpRight className="size-2.5 text-muted/60 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-brand group-hover:translate-x-0.5 sm:size-3" />
           </div>
-          <span className="block truncate text-[9.5px] font-medium leading-tight text-ink/85 group-hover:text-ink sm:text-[11px]">
+          <span className="block truncate text-[9px] font-medium leading-tight text-ink/85 group-hover:text-ink sm:text-[11px]">
             {spec.label}
           </span>
         </a>
@@ -70,7 +70,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "pointer-events-auto relative max-w-[34.5rem] lg:max-w-[36.5rem] page-breeze rotate-[-0.75deg] sm:rotate-[-1.25deg] ml-1 sm:ml-0",
+        "pointer-events-auto relative w-full max-w-[34.5rem] lg:max-w-[36.5rem] sm:page-breeze rotate-0 sm:rotate-[-1.25deg]",
         className,
       )}
       aria-label="Travel Document: See the whole world"
@@ -78,7 +78,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
       {/* 3D Notebook Wire Spirals (6 Realistic, Large Circular Metallic Binder Rings) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 -left-3 z-30 flex flex-col justify-between py-7 sm:-left-4.5 sm:py-9"
+        className="pointer-events-none absolute inset-y-0 -left-2.5 z-30 flex flex-col justify-between py-7 sm:-left-4.5 sm:py-9"
       >
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="relative flex items-center">
@@ -266,13 +266,13 @@ export function HeroPassportPage({ className }: { className?: string }) {
         <div className="pointer-events-none absolute inset-2 rounded-[20px] border border-dashed border-ink/20" />
 
         {/* Spiral Notebook Perforated Spine Crease */}
-        <div className="pointer-events-none absolute inset-y-0 left-9 sm:left-10 z-10 border-r border-dashed border-ink/20" />
+        <div className="pointer-events-none absolute inset-y-0 left-7.5 sm:left-10 z-10 border-r border-dashed border-ink/20" />
 
         {/* Spine paper shadow gradient along the inner edge */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-9 bg-gradient-to-r from-ink/[0.04] to-transparent sm:w-10" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-7.5 bg-gradient-to-r from-ink/[0.04] to-transparent sm:w-10" />
 
         {/* Main Biodata Body: Headline + Narrative on Top, Avatar beside Buttons & Specs below */}
-        <div className="relative pt-5.5 pr-4 pb-3 pl-10 sm:pt-6.5 sm:pr-6 sm:pb-3.5 sm:pl-12 lg:pt-7 lg:pr-7 lg:pb-3.5 lg:pl-13">
+        <div className="relative pt-5.5 pr-3.5 pb-3 pl-8.5 sm:pt-6.5 sm:pr-6 sm:pb-3.5 sm:pl-12 lg:pt-7 lg:pr-7 lg:pb-3.5 lg:pl-13">
           {/* Top Section: Eyebrow, Main Headline, and Story (Matching Passport Section Typography) */}
           <div className="min-w-0">
             {/* Section Eyebrow */}
@@ -284,7 +284,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-balance text-[clamp(2.15rem,4.4vw,3.25rem)] font-medium leading-[1.03] tracking-[-0.035em] text-ink">
+            <h1 className="text-balance text-[clamp(1.95rem,4.4vw,3.25rem)] font-medium leading-[1.04] tracking-[-0.035em] text-ink">
               See the whole world.{" "}
               <span className="block text-brand">
                 On a small budget.
@@ -390,7 +390,7 @@ export function HeroPassportPage({ className }: { className?: string }) {
         </div>
 
         {/* Machine Readable Zone (MRZ) across bottom - Single compact line */}
-        <div className="relative border-t border-ink/10 bg-cream/60 py-2 pr-4 pl-10 font-mono text-[9px] uppercase tracking-[0.16em] text-ink/55 select-none backdrop-blur-xs sm:pr-6 sm:pl-12 sm:text-[10px]">
+        <div className="relative border-t border-ink/10 bg-cream/60 py-2 pr-3.5 pl-8.5 font-mono text-[8.5px] uppercase tracking-[0.12em] text-ink/55 select-none backdrop-blur-xs sm:pr-6 sm:pl-12 sm:text-[10px] sm:tracking-[0.16em]">
           <div className="truncate">
             P&lt;INDFARE&lt;&lt;OCLOCK&lt;&lt;099&lt;&lt;499&lt;&lt;999&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
           </div>

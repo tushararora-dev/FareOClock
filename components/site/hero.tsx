@@ -50,7 +50,7 @@ export function Hero() {
         ))}
       </div>
 
-      <div className="shell pointer-events-none relative z-10 pl-5 pr-3 sm:px-6">
+      <div className="shell pointer-events-none relative z-10 pl-4 pr-3.5 sm:px-6">
         <HeroPassportPage />
       </div>
     </section>
