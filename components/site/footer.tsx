@@ -2,14 +2,13 @@ import { ArrowUpRight } from "lucide-react";
 import { LogoMark } from "@/components/site/logo-mark";
 import { site } from "@/lib/site";
 
-async function getCurrentYear() {
-  "use cache";
+function getCurrentYear() {
   return new Date().getFullYear();
 }
 
 /** Slim footer strip — lives inside the Contact panel so the page stays one screen. */
-export async function Footer() {
-  const year = await getCurrentYear();
+export function Footer() {
+  const year = getCurrentYear();
 
   return (
     <footer className="pointer-events-auto relative z-10 border-t border-line/70 bg-cream/90 backdrop-blur">
