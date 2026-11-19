@@ -86,71 +86,41 @@ export function Nav() {
 
   // The little plane rides the dashed rail under the navbar as the page
   // scrolls: parked on the left at the top, all the way right at the end.
-  // Uses fluid RAF interpolation (lerp) so movement is ultra-smooth on mobile touch.
   useEffect(() => {
     const plane = planeRef.current;
     const track = planeTrackRef.current;
     const trail = planeTrailRef.current;
     if (!plane || !track) return;
 
-    let targetX = 0;
-    let currentX = 0;
     let frame = 0;
-    let trackWidth = track.clientWidth || 300;
-    let maxScroll = Math.max(
-      1,
-      document.documentElement.scrollHeight - window.innerHeight,
-    );
-
-    const measure = () => {
-      trackWidth = track.clientWidth || 300;
-      maxScroll = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
-    };
-
-    const step = () => {
-      frame = 0;
-      currentX += (targetX - currentX) * 0.22;
-
-      plane.style.transform = `translate3d(${currentX.toFixed(2)}px, 0, 0)`;
-      if (trail && trackWidth > 0) {
-        const progress = Math.min(
-          1,
-          Math.max(0, (currentX + 8) / trackWidth),
-        );
-        trail.style.transform = `scaleX(${progress.toFixed(4)})`;
-      }
-
-      if (Math.abs(targetX - currentX) > 0.15) {
-        frame = window.requestAnimationFrame(step);
-      }
-    };
 
     const update = () => {
-      const scrollY = window.scrollY;
-      const progress =
-        maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
-      targetX = progress * trackWidth;
-      if (!frame) frame = window.requestAnimationFrame(step);
+      frame = 0;
+      const doc = document.documentElement;
+      const maxScroll = Math.max(1, doc.scrollHeight - window.innerHeight);
+      const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+      const trackWidth = track.clientWidth || (window.innerWidth - 32);
+      const currentX = progress * trackWidth;
+
+      plane.style.transform = `translate3d(${currentX.toFixed(1)}px, 0, 0)`;
+      if (trail) {
+        trail.style.width = `${Math.max(0, currentX + 8)}px`;
+      }
     };
 
-    measure();
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
     update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", () => {
-      measure();
-      update();
-    }, { passive: true });
-    const observer = new ResizeObserver(() => {
-      measure();
-      update();
-    });
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
+    const observer = new ResizeObserver(schedule);
     observer.observe(document.body);
     return () => {
       if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", update);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
       observer.disconnect();
     };
   }, []);

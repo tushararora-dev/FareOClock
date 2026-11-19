@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Reveal } from "@/components/reveal";
 import { HeroPassportPage } from "@/components/site/hero-passport-page";
 import { MapHud } from "@/components/site/map-hud";
 import { useMapController } from "@/lib/map-controller";
@@ -52,9 +51,7 @@ export function Hero() {
       </div>
 
       <div className="shell pointer-events-none relative z-10 pl-5 pr-3 sm:px-6">
-        <Reveal>
-          <HeroPassportPage />
-        </Reveal>
+        <HeroPassportPage />
       </div>
     </section>
   );
