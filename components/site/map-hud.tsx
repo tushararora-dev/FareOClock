@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Minus, Move, Plus, RotateCcw } from "lucide-react";
-import { MAP_CREDITS, useMapProvider } from "@/lib/map-provider";
 import { cn } from "@/lib/utils";
 
 /** Equator metres per pixel at zoom 0 for a 512px world. */
@@ -23,7 +22,6 @@ export function MapHud({
 }: {
   controller: import("@/lib/map-controller").MapController,
 }) {
-  const provider = useMapProvider();
   const hudRef = useRef<HTMLDivElement>(null);
   const readoutRef = useRef<HTMLSpanElement>(null);
   const scaleRef = useRef<HTMLSpanElement>(null);
@@ -159,23 +157,6 @@ export function MapHud({
             <RotateCcw className="size-3" strokeWidth={2.4} />
           </MapButton>
         </div>
-
-        <span className="rounded-full bg-cream/80 px-2 py-0.5 text-[9px] leading-relaxed text-muted backdrop-blur">
-          ©{" "}
-          {MAP_CREDITS[provider].map((credit, index) => (
-            <span key={credit.href}>
-              {index > 0 && " · "}
-              <a
-                href={credit.href}
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-line-strong underline-offset-2 hover:text-ink"
-              >
-                {credit.label}
-              </a>
-            </span>
-          ))}
-        </span>
       </div>
     </div>
   );
